@@ -1,5 +1,6 @@
 resource "aws_vpc" "exp_kafka_vpc" {
   cidr_block = "10.201.0.0/16"
+  enable_dns_hostnames = true
   tags = "${var.kafka_exp_tags}"
 }
 

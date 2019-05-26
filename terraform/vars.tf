@@ -20,6 +20,6 @@ variable "kafka_exp_tags" {
     State = "Experimental"
     ExpiresAt = "20190625"
     Department = "CloudOps"
-    Name = "Experimental_kafka_cluster_instance"
+    Description = "Experimental_kafka_cluster_instance"
   }
 }
