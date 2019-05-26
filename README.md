@@ -19,7 +19,7 @@ There are a couple of things needed for the script to work.
 ### Prerequisites
 
 Packer and AWS Command Line Interface tools need to be installed on your local
-computer.
+computer. You also need Terraform.
 To build a base image you have to know the id of the latest Debian AMI files
 for the region where you wish to build the AMI.
 
@@ -27,6 +27,19 @@ for the region where you wish to build the AMI.
 
 Packer installation instructions can be found
 [here](https://www.packer.io/docs/installation.html).
+
+#### Terraform 
+You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
+Then run from the terraform folder
+```bash
+terraform plan -out kafka.plan
+``` 
+Then apply it by 
+```bash
+terraform apply kafka.plan
+```
+
+
 
 #### AWS Command Line Interface
 
@@ -45,7 +58,7 @@ A list of all the Debian AMI id's can be found at the Debian official page:
 In order to create the AMI using this packer template you need to provide a
 few options.
 Set the two environment vars to have the aws access and secret keys (And do not submit these to git, duh)
-
+Also replace the AWS_REGION by the AWS [region](https://docs.aws.amazon.com/general/latest/gr/rande.html) you want to deploy to. 
 ```
 Usage:
   packer build \
@@ -119,6 +132,11 @@ Run the configuration tool (*kafka_config*) to configure the instance.
 kafka_config -a kafka01.mydomain.tld -E -S -i 1 -z zookeeper01.mydomain.tld:2181
 ```
 
+Localhost:
+```bash
+kafka_config -a localhost -E -S -i 1 -z localhost:2181
+```
+
 After this steps a Kafka broker (for either a single instance or a cluster
 setup) should be running and configured to start on server boot.
 
@@ -154,6 +172,12 @@ Usage: zookeeper_config [options]
 * `-n <ID:ADDRESS>` - The ID and Address of a cluster node (e.g.: '1:127.0.0.1'). Should be used to set all the Zookeeper nodes. Several Zookeeper nodes can be set by either using extra `-n` options or if separated with a comma on the same `-n` option.
 * `-S` - Starts the Zookeeper service after performing the required configurations (if any given).
 * `-W <SECONDS>` - Waits the specified amount of seconds before starting the Zookeeper service (default value is '0').
+
+First start: 
+```bash
+sudo su
+zookeeper_config -E -i 1 -m 512m -n 1:10.201.1.140
+```
 
 #### Configuring a Zookeeper Node
 
