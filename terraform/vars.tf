@@ -1,6 +1,6 @@
 variable "base_kafka_image_aim" {
   type = "string"
-  default = "ami-01913f6789036f2c3"
+  default = "ami-03fd73a66cf574a36"
 }
 
 variable "region" {
@@ -11,4 +11,15 @@ variable "region" {
 variable "instance_type" {
   type = "string"
   default = "m4.large"
+}
+
+variable "kafka_exp_tags" {
+  type = "map"
+  default = {
+    Author = "Philip Rodrigues"
+    State = "Experimental"
+    ExpiresAt = "20190625"
+    Department = "CloudOps"
+    Name = "Experimental_kafka_cluster_instance"
+  }
 }

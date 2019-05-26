@@ -1,4 +1,5 @@
 # Apache Kafka AMI
+This is based on the git project `https://github.com/fscm/packer-aws-kafka` that was outdated and needed to be rewritten. 
 
 AMI that should be used to create virtual machines with Apache Kafka
 installed.
@@ -43,15 +44,15 @@ A list of all the Debian AMI id's can be found at the Debian official page:
 
 In order to create the AMI using this packer template you need to provide a
 few options.
+Set the two environment vars to have the aws access and secret keys (And do not submit these to git, duh)
 
 ```
 Usage:
   packer build \
-    -var 'aws_access_key=AWS_ACCESS_KEY' \
-    -var 'aws_secret_key=<AWS_SECRET_KEY>' \
+    -var "aws_access_key=$AWS_ACCESS_KEY" \
+    -var "aws_secret_key=$AWS_SECRET_KEY" \
     -var 'aws_region=<AWS_REGION>' \
-    -var 'kafka_version=<KAFKA_VERSION>' \
-    [-var 'option=value'] \
+    -var 'kafka_version=2.1.1' \    
     kafka.json
 ```
 
