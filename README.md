@@ -39,15 +39,24 @@ Then apply it by
 terraform apply kafka.plan
 ```
 
+You also need to create a secrets.tf file with the ssh key you use to get to the kafka instance. 
+```hcl-terraform
+resource "aws_key_pair" "kafka-keypair" {
+  public_key = "<your key>"
+  key_name = "kafka-keypair"
+}
+
+```
+The secret* pattern is excluded from git so it will not be pushed into git. 
 
 
 #### AWS Command Line Interface
 
 AWS Command Line Interface installation instructions can be found [here](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
 
-#### Debian AMI's
+#### Debian AMI's for Packer
 
-This AMI will be based on an official Debian AMI. The latest version of that
+This AMI will be based on an official Debian AMI (Stretch 9). The latest version of that
 AMI will be used.
 
 A list of all the Debian AMI id's can be found at the Debian official page:
