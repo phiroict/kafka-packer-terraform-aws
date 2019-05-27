@@ -15,7 +15,7 @@ resource "aws_instance" "kafka_instance" {
   vpc_security_group_ids = ["${aws_security_group.kafka_cluster.id}"]
   subnet_id = "${aws_subnet.exp_kafka-subnet.id}"
 
-  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_Instance_Experimental"))}"
+  tags = "${merge(var.kafka_exp_tags,  map("Name",format("PhiRo_Kafka_Instance_Experimental_%s", var.environment_tg )))}"
   depends_on = ["aws_internet_gateway.kafka_cluster_internet_gateway"]
 }
 

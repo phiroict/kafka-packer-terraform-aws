@@ -28,3 +28,8 @@ variable "ip_allow_access_ip" {
   type = "string"
   default = "115.189.86.96/32"
 }
+
+variable "environment_tg" {
+  type = "string"
+  default = "not_set"
+}

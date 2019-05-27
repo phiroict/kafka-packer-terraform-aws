@@ -68,3 +68,8 @@ resource "aws_security_group" "kafka_cluster" {
   }
   tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_SecurityGroup_Experimental"))}"
 }
+
+resource "aws_key_pair" "kafka-keypair" {
+  public_key =  "${var.aws_public_key}"
+  key_name = "kafka-keypair"
+}
