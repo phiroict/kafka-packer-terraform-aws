@@ -73,3 +73,8 @@ resource "aws_key_pair" "kafka-keypair" {
   public_key =  "${var.aws_public_key}"
   key_name = "kafka-keypair"
 }
+
+variable "aws_public_key" {
+  type = "string"
+  default = ""
+}
