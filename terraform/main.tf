@@ -1,11 +1,3 @@
-resource "aws_key_pair" "kafka-keypair" {
-  public_key = "${var.public_key_kafka-keypair}"
-  key_name = "kafka-keypair"
-
-}
-
-
-
 resource "aws_vpc_dhcp_options" "dhcp_kafka_dns" {
   domain_name = "kafka.cluster.internal"
   tags = "${var.kafka_exp_tags}"
