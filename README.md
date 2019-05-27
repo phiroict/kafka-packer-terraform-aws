@@ -32,6 +32,10 @@ for the region where you wish to build the AMI.
 Packer installation instructions can be found
 [here](https://www.packer.io/docs/installation.html).
 
+We start with building the packer image, or take the one that is already there. Look for a name like: 
+`kafka-2.1.1-(20190527012503)` and take the AMI ID and past that into the variable file (terraform/vars.tf)
+See below
+
 #### Terraform 
 You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
 Then run from the terraform folder
