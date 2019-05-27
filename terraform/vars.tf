@@ -1,6 +1,6 @@
 variable "base_kafka_image_aim" {
   type = "string"
-  default = "ami-03fd73a66cf574a36"
+  default = "ami-0f6f525461ca6509b"
 }
 
 variable "region" {
@@ -22,4 +22,9 @@ variable "kafka_exp_tags" {
     Department = "CloudOps"
     Description = "Experimental_kafka_cluster_instance"
   }
+}
+
+variable "ip_allow_access_ip" {
+  type = "string"
+  default = "115.189.86.96/32"
 }

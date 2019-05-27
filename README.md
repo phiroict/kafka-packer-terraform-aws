@@ -12,6 +12,10 @@ the required initialization scripts.
 The AMI resulting from this script should be the one used to instantiate a
 Kafka server (standalone or cluster).
 
+## What are we building 
+
+![Layout for Kafka](docs/demo_functional_diagram_kafka.jpg)
+
 ## Getting Started
 
 There are a couple of things needed for the script to work.
@@ -50,6 +54,17 @@ resource "aws_key_pair" "kafka-keypair" {
 The secret* pattern is excluded from git so it will not be pushed into git. 
 
 
+Now use the kafka.json script with packer to create the kafka image to use. The scrupt returns a ami id and you need to place 
+this into the vars.tf file.
+For instance 
+```hcl-terraform
+variable "base_kafka_image_aim" {
+  type = "string"
+  default = "ami-03fd73a66cf574a36"
+}
+```
+
+
 #### AWS Command Line Interface
 
 AWS Command Line Interface installation instructions can be found [here](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
@@ -73,7 +88,7 @@ Usage:
   packer build \
     -var "aws_access_key=$AWS_ACCESS_KEY" \
     -var "aws_secret_key=$AWS_SECRET_KEY" \
-    -var 'aws_region=<AWS_REGION>' \
+    -var 'aws_region=ap-southeast-2' \
     -var 'kafka_version=2.1.1' \    
     kafka.json
 ```
