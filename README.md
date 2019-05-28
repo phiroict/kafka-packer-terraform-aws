@@ -23,7 +23,7 @@ There are a couple of things needed for the script to work.
 ### Prerequisites
 
 Packer and AWS Command Line Interface tools need to be installed on your local
-computer. You also need Terraform.
+computer. You also need Terraform and the terraform wrapper called `terragrunt`.  
 To build a base image you have to know the id of the latest Debian AMI files
 for the region where you wish to build the AMI.
 
@@ -47,14 +47,16 @@ Then apply it by
 terraform apply kafka.plan
 ```
 
-You also need to create a secrets.tf file with the ssh key you use to get to the kafka instance. 
-```hcl-terraform
-resource "aws_key_pair" "kafka-keypair" {
-  public_key = "<your key>"
-  key_name = "kafka-keypair"
-}
+You also need to create a terragrunt/secrets.tfvars file with the ssh key you use to get to the kafka instance.
+This is then injected by terragrunt.  
 
+
+
+```bash
+aws_public_key = "YOUR PUBLIC KEY HERE"
 ```
+
+
 The secret* pattern is excluded from git so it will not be pushed into git. 
 
 
@@ -86,14 +88,16 @@ A list of all the Debian AMI id's can be found at the Debian official page:
 In order to create the AMI using this packer template you need to provide a
 few options.
 Set the two environment vars to have the aws access and secret keys (And do not submit these to git, duh)
-Also replace the AWS_REGION by the AWS [region](https://docs.aws.amazon.com/general/latest/gr/rande.html) you want to deploy to. 
+Also replace the AWS_REGION by the AWS [region](https://docs.aws.amazon.com/general/latest/gr/rande.html) you want to deploy to.
+and set the SSH_PUBLIC_KEY_STRING  
 ```
 Usage:
   packer build \
     -var "aws_access_key=$AWS_ACCESS_KEY" \
     -var "aws_secret_key=$AWS_SECRET_KEY" \
     -var 'aws_region=ap-southeast-2' \
-    -var 'kafka_version=2.1.1' \    
+    -var 'kafka_version=2.1.1' \
+    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING"    
     kafka.json
 ```
 
