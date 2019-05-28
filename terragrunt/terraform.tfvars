@@ -1,13 +1,16 @@
 terragrunt = {
   terraform = {
-    source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.0.0"
+    source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.0.2"
     local = {}
-    required_var_files = [
-      "secret.tfvar"
-    ]
-
-
-    extra_arguments "custom_vars" {
+    extra_arguments "-var-file" {
+      required_var_files = [
+        "secrets.tfvars"
+      ]
+    }
+    arguments = [
+      "-var-file=secrets.tfvars",
+     ]
+      extra_arguments "custom_vars" {
       commands = [
         "apply",
         "plan",
