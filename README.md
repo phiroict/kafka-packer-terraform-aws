@@ -128,6 +128,9 @@ variable "base_kafka_image_aim" {
 
 After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
 
+### CI
+We use concourse to install the build and deploy tool we use for the kafka deploy. 
+
 
 ### Instantiate a Cluster
 
@@ -163,6 +166,7 @@ Usage: kafka_config [options]
 * `-S` - Starts the Kafka service after performing the required configurations (if any given).
 * `-W <SECONDS>` - Waits the specified amount of seconds before starting the Kafka service (default value is '0').
 * `-z <ENDPOINT>` - Sets a Zookeeper server endpoint to be used by the Kafka broker (defaut value is 'localhost:2181'). Several Zookeeper endpoints can be set by either using extra `-z` options or if separated with a comma on the same `-z` option.
+
 
 #### Configuring a Kafka Broker
 
