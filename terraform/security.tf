@@ -4,7 +4,7 @@ resource "aws_security_group" "kafka_cluster" {
   vpc_id      = "${aws_vpc.exp_kafka_vpc.id}"
 
   ingress {
-    cidr_blocks = ["111.69.227.166/32"]
+    cidr_blocks = ["${var.ip_allow_access_ip}"]
     protocol = "icmp"
     from_port = 8
     to_port = 0

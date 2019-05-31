@@ -3,5 +3,5 @@ output "bastion_ip" {
 }
 
 output "private_dns" {
-  value = "DNS: ${aws_instance.kafka_instance.private_dns}"
+  value = "DNS: ${aws_instance.kafka_instance_public_broker.private_dns}"
 }
