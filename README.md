@@ -281,7 +281,8 @@ available, see the [tags on this repository](https://github.com/fscm/packer-aws-
 
 ## Authors
 
-* **Frederico Martins** - [fscm](https://github.com/fscm)
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion and upgrades
 
 See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
 who participated in this project.
