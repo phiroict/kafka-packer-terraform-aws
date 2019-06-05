@@ -26,7 +26,7 @@ variable "kafka_exp_tags" {
 
 variable "ip_allow_access_ip" {
   type = "string"
-  default = "111.69.226.95/32"
+  default = "115.189.84.162/32"
 }
 
 variable "environment_tg" {

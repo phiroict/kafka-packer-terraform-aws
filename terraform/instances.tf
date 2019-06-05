@@ -1,13 +1,37 @@
 resource "aws_network_interface" "nic_kafka0"{
   subnet_id = "${aws_subnet.exp_kafka-subnet.id}"
-  private_ip = "10.201.1.100"
+  private_ips = ["10.201.1.100"]
   security_groups = ["${aws_security_group.kafka_cluster.id}"]
   attachment {
-    device_index = 0
-    instance = "${aws_instance.kafka_instance.id}"
+    device_index = 1
+    instance = "${aws_instance.kafka_instance_public_broker.id}"
   }
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo Kafka NIC0"))}"
 }
 
+resource "aws_network_interface" "nic_kafka1"{
+  subnet_id = "${aws_subnet.exp_kafka-subnet.id}"
+  private_ips = ["10.201.1.101"]
+  security_groups = ["${aws_security_group.kafka_cluster.id}"]
+  attachment {
+    device_index = 1
+    instance = "${aws_instance.kafka_instance_private_brokers.0.id}"
+  }
+  depends_on = ["aws_instance.kafka_instance_private_brokers"]
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo Kafka NIC1"))}"
+}
+
+resource "aws_network_interface" "nic_kafka2"{
+  subnet_id = "${aws_subnet.exp_kafka-subnet.id}"
+  private_ips = ["10.201.1.102"]
+  security_groups = ["${aws_security_group.kafka_cluster.id}"]
+  attachment {
+    device_index = 1
+    instance = "${aws_instance.kafka_instance_private_brokers.1.id}"
+  }
+  depends_on = ["aws_instance.kafka_instance_private_brokers"]
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo Kafka NIC2"))}"
+}
 
 resource "aws_vpc_dhcp_options" "dhcp_kafka_dns" {
   domain_name = "kafka.cluster.internal"
@@ -20,7 +44,7 @@ resource "aws_vpc_dhcp_options_association" "vpc_dns_association" {
 }
 
 resource "aws_instance" "kafka_instance_public_broker" {
-  ami = "${var.base_kafka_image_aim}"
+  ami = "${var.base_kafka_image_ami}"
   instance_type = "${var.instance_type}"
   key_name = "kafka-keypair"
   vpc_security_group_ids = ["${aws_security_group.kafka_cluster.id}"]
@@ -32,7 +56,7 @@ resource "aws_instance" "kafka_instance_public_broker" {
 
 resource "aws_instance" "kafka_instance_private_brokers" {
   count = 2
-  ami = "${var.base_kafka_image_aim}"
+  ami = "${var.base_kafka_image_ami}"
   instance_type = "${var.instance_type}"
   key_name = "kafka-keypair"
   vpc_security_group_ids = ["${aws_security_group.kafka_cluster.id}"]
