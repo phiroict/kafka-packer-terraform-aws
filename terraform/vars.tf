@@ -1,4 +1,4 @@
-variable "base_kafka_image_aim" {
+variable "base_kafka_image_ami" {
   type = "string"
   default = "ami-0f6f525461ca6509b"
 }

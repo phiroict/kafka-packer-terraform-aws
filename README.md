@@ -92,13 +92,14 @@ Also replace the AWS_REGION by the AWS [region](https://docs.aws.amazon.com/gene
 and set the SSH_PUBLIC_KEY_STRING  
 ```
 Usage:
-  packer build \
+packer build \
     -var "aws_access_key=$AWS_ACCESS_KEY" \
     -var "aws_secret_key=$AWS_SECRET_KEY" \
     -var 'aws_region=ap-southeast-2' \
     -var 'kafka_version=2.1.1' \
-    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING"    
+    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \   
     kafka.json
+  
 ```
 
 #### Script Options
