@@ -36,39 +36,6 @@ We start with building the packer image, or take the one that is already there. 
 `kafka-2.1.1-(20190527012503)` and take the AMI ID and past that into the variable file (terraform/vars.tf)
 See below
 
-#### Terraform 
-You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
-Then run from the terraform folder
-```bash
-terraform plan -out kafka.plan
-``` 
-Then apply it by 
-```bash
-terraform apply kafka.plan
-```
-
-You also need to create a terragrunt/secrets.tfvars file with the ssh key you use to get to the kafka instance.
-This is then injected by terragrunt.  
-
-
-
-```bash
-aws_public_key = "YOUR PUBLIC KEY HERE"
-```
-
-
-The secret* pattern is excluded from git so it will not be pushed into git. 
-
-
-Now use the kafka.json script with packer to create the kafka image to use. The scrupt returns a ami id and you need to place 
-this into the vars.tf file.
-For instance 
-```hcl-terraform
-variable "base_kafka_image_aim" {
-  type = "string"
-  default = "ami-03fd73a66cf574a36"
-}
-```
 
 
 #### AWS Command Line Interface
@@ -118,6 +85,50 @@ packer build \
 - `kafka_version` - *[required]* Kafka version.
 - `system_locale` - Locale for the system (default value: "en_US").
 - `zookeeper_version` - Zookeeper version (default value: "3.4.9").
+
+#### Terraform 
+You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
+Then run from the terraform folder, put in the vars section the name of the image just build. 
+For instance: 
+
+```bash
+terraform plan -var 'base_kafka_image_aim=ami-05aa27f98e8b3c6b8'  -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" -out kafka.plan
+``` 
+Note that if you want to interpolate the bash variables you need to use double quotes around the values, not single quotes as otherwise this will take the literal string and not
+the value in it. 
+
+
+Then apply it by 
+```bash
+terraform apply kafka.plan
+```
+
+You also need to create a terragrunt/secrets.tfvars file with the ssh key you use to get to the kafka instance.
+This is then injected by terragrunt.  
+
+
+
+```bash
+aws_public_key = "YOUR PUBLIC KEY HERE"
+```
+
+
+The secret* pattern is excluded from git so it will not be pushed into git. 
+
+
+Now use the kafka.json script with packer to create the kafka image to use, this can be done by adding it to the commandline as before or set it in the 
+default of the variable in the var.tf file. The script returns a ami id and you need to place 
+this into the vars.tf file.
+For instance 
+```hcl-terraform
+variable "base_kafka_image_aim" {
+  type = "string"
+  default = "ami-03fd73a66cf574a36"
+}
+```
+
+After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
+
 
 ### Instantiate a Cluster
 
@@ -271,7 +282,8 @@ available, see the [tags on this repository](https://github.com/fscm/packer-aws-
 
 ## Authors
 
-* **Frederico Martins** - [fscm](https://github.com/fscm)
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion and upgrades
 
 See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
 who participated in this project.
