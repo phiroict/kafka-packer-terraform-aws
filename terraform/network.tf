@@ -6,10 +6,26 @@ resource "aws_vpc" "exp_kafka_vpc" {
 
 
 
-resource "aws_subnet" "exp_kafka-subnet" {
+resource "aws_subnet" "exp_kafka-subnet-se-2a" {
   cidr_block = "10.201.1.0/24"
   vpc_id = "${aws_vpc.exp_kafka_vpc.id}"
-  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_Subnet0_Experimental"))}"
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_Subnet0 se-2a_Experimental"))}"
+  availability_zone = "ap-southeast-2a"
+}
+
+resource "aws_subnet" "exp_kafka-subnet-se-2b" {
+  cidr_block = "10.201.2.0/24"
+  vpc_id = "${aws_vpc.exp_kafka_vpc.id}"
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_Subnet1_se-2b Experimental"))}"
+  availability_zone = "ap-southeast-2b"
+}
+
+
+resource "aws_subnet" "exp_kafka-subnet-se-2c" {
+  cidr_block = "10.201.3.0/24"
+  vpc_id = "${aws_vpc.exp_kafka_vpc.id}"
+  tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_Subnet0_se-2c Experimental"))}"
+  availability_zone = "ap-southeast-2c"
 }
 
 resource "aws_eip" "kafka_ip_address" {
