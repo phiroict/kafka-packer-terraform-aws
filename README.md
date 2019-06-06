@@ -130,6 +130,31 @@ variable "base_kafka_image_aim" {
 
 After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
 
+#### Terragrunt 
+
+In the terragrunt folder are the terragrunt scripts. The commands are likewise but will build the infra from the 
+git tag helping versioning. 
+
+You need to create a secrets.tfvars file that cannot be stored in git. In this case it will hold the 
+public ssh key injected in the public kafka broker. 
+
+```json
+{
+  "aws_public_key": "your-public-key-here"
+}
+
+```
+You now run 
+```bash
+# Run once 
+terragrunt init
+# Plan the same as in terraform
+terragrunt plan
+# Now apply 
+terragrunt apply -var-file secrets.tfvars 
+
+```
+Note the explicit var-file reference in the apply to avoid storing secrets in your planfile. 
 
 #### Result 
 We now have three kafka servers with a fixed IP address 
