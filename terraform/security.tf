@@ -18,6 +18,18 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = ["${var.ip_allow_access_ip}"]
+    description = "Access from LIC or home address"
+  }
+
+  ingress {
+    # SSH for initial processing
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    # Please restrict your ingress to only necessary IPs and ports.
+    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    cidr_blocks = ["${aws_subnet.exp_kafka-subnet.cidr_block}"]
+    description = "Allow subnet access"
   }
 
   ingress {
@@ -28,6 +40,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = ["${var.ip_allow_access_ip}", "${aws_subnet.exp_kafka-subnet.cidr_block}"]
+    description = "Kafka partition access"
   }
 
   ingress {
@@ -38,6 +51,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = ["${var.ip_allow_access_ip}", "${aws_subnet.exp_kafka-subnet.cidr_block}"]
+    description = "Zookeeper access"
   }
 
   ingress {
@@ -48,6 +62,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = ["${aws_subnet.exp_kafka-subnet.cidr_block}"]
+    description = "Kafka cluster communication"
   }
 
   ingress {
@@ -58,6 +73,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = ["${aws_subnet.exp_kafka-subnet.cidr_block}"]
+    description = "Kafka leader communication"
   }
 
   egress {
@@ -65,6 +81,7 @@ resource "aws_security_group" "kafka_cluster" {
     to_port         = 0
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
+    description = "No limits for outgoing traffic"
   }
   tags = "${merge(var.kafka_exp_tags,  map("Name","PhiRo_Kafka_SecurityGroup_Experimental"))}"
 }
