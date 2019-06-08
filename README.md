@@ -59,13 +59,14 @@ Also replace the AWS_REGION by the AWS [region](https://docs.aws.amazon.com/gene
 and set the SSH_PUBLIC_KEY_STRING  
 ```
 Usage:
-  packer build \
+packer build \
     -var "aws_access_key=$AWS_ACCESS_KEY" \
     -var "aws_secret_key=$AWS_SECRET_KEY" \
     -var 'aws_region=ap-southeast-2' \
     -var 'kafka_version=2.1.1' \
     -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \   
     kafka.json
+  
 ```
 
 #### Script Options
@@ -91,6 +92,7 @@ Then run from the terraform folder, put in the vars section the name of the imag
 For instance: 
 
 ```bash
+export SSH_PUBLIC_KEY_STRING=<yourkey>
 terraform plan -var 'base_kafka_image_aim=ami-05aa27f98e8b3c6b8'  -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" -out kafka.plan
 ``` 
 Note that if you want to interpolate the bash variables you need to use double quotes around the values, not single quotes as otherwise this will take the literal string and not
@@ -128,9 +130,35 @@ variable "base_kafka_image_aim" {
 
 After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
 
-### CI
-We use concourse to install the build and deploy tool we use for the kafka deploy. 
+#### Terragrunt 
 
+In the terragrunt folder are the terragrunt scripts. The commands are likewise but will build the infra from the 
+git tag helping versioning. 
+
+You need to create a secrets.tfvars file that cannot be stored in git. In this case it will hold the 
+public ssh key injected in the public kafka broker. 
+
+```json
+{
+  "aws_public_key": "your-public-key-here"
+}
+
+```
+You now run 
+```bash
+# Run once 
+terragrunt init
+# Plan the same as in terraform
+terragrunt plan
+# Now apply 
+terragrunt apply -var-file secrets.tfvars 
+
+```
+Note the explicit var-file reference in the apply to avoid storing secrets in your planfile. 
+
+#### Result 
+We now have three kafka servers with a fixed IP address 
+10.201.1.100 - 10.201.1.101 - 10.201.1.102 with the first public accessible. (Note, you would never do that in production)
 
 ### Instantiate a Cluster
 
@@ -166,6 +194,40 @@ Usage: kafka_config [options]
 * `-S` - Starts the Kafka service after performing the required configurations (if any given).
 * `-W <SECONDS>` - Waits the specified amount of seconds before starting the Kafka service (default value is '0').
 * `-z <ENDPOINT>` - Sets a Zookeeper server endpoint to be used by the Kafka broker (defaut value is 'localhost:2181'). Several Zookeeper endpoints can be set by either using extra `-z` options or if separated with a comma on the same `-z` option.
+
+We configure and run the kafka and zookeepers from the user_data script in the terraform script. 
+Check the `template.tf` and the `instances.tf` scripts. For documentation we show what we actually run on the 
+servers on deployment complete: 
+
+
+We are running from the 10.201.1.100 (Public broker 0)
+```bash
+# Zoopkeeper
+zookeeper_config -E -S -i 1 -m 512m -n 1:0.0.0.0,2:10.201.1.101,3:10.201.1.102
+
+# Kafka
+kafka_config -a 10.201.1.100 -E -i 1 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
+```
+
+
+We are running from the 10.201.1.101 (Private broker 0)
+```bash
+# Zoopkeeper
+zookeeper_config -E -S -i 2 -m 512m -n 1:10.201.1.100,2:0.0.0.0,3:10.201.1.102
+
+# Kafka
+kafka_config -a 10.201.1.101 -E -i 2 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
+```
+
+
+We are running from the 10.201.1.102 (Private broker 1)
+```bash
+# Zoopkeeper
+zookeeper_config -E -S -i 3 -m 512m -n 1:10.201.1.100,2:10.201.1.101,3:0.0.0.0
+
+# Kafka
+kafka_config -a 10.201.1.102 -E -i 3 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
+```
 
 
 #### Configuring a Kafka Broker
@@ -285,7 +347,8 @@ available, see the [tags on this repository](https://github.com/fscm/packer-aws-
 
 ## Authors
 
-* **Frederico Martins** - [fscm](https://github.com/fscm)
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion and upgrades
 
 See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
 who participated in this project.

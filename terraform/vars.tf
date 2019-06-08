@@ -1,4 +1,4 @@
-variable "base_kafka_image_aim" {
+variable "base_kafka_image_ami" {
   type = "string"
   default = "ami-0f6f525461ca6509b"
 }
@@ -18,7 +18,7 @@ variable "kafka_exp_tags" {
   default = {
     Author = "Philip Rodrigues"
     State = "Experimental"
-    ExpiresAt = "20190625"
+    ExpiresAt = "20190701"
     Department = "CloudOps"
     Description = "Experimental_kafka_cluster_instance"
   }
@@ -26,7 +26,7 @@ variable "kafka_exp_tags" {
 
 variable "ip_allow_access_ip" {
   type = "string"
-  default = "111.69.226.95/32"
+  default = "115.189.85.152/32"
 }
 
 variable "environment_tg" {
