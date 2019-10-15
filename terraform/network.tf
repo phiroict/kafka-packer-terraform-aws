@@ -5,7 +5,11 @@ resource "aws_vpc" "exp_kafka_vpc" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_VPC_Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
 }
 
@@ -16,7 +20,11 @@ resource "aws_subnet" "exp_kafka-subnet-se-2a" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_Subnet0 se-2a_Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   availability_zone = "ap-southeast-2a"
 }
@@ -28,7 +36,11 @@ resource "aws_subnet" "exp_kafka-subnet-se-2b" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_Subnet1_se-2b Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   availability_zone = "ap-southeast-2b"
 }
@@ -40,7 +52,11 @@ resource "aws_subnet" "exp_kafka-subnet-se-2c" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_Subnet0_se-2c Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   availability_zone = "ap-southeast-2c"
 }
@@ -52,7 +68,11 @@ resource "aws_eip" "kafka_ip_address" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_ElasticIP_Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
 }
 
@@ -62,7 +82,11 @@ resource "aws_internet_gateway" "kafka_cluster_internet_gateway" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka_IGW_Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
 }
 
@@ -76,7 +100,11 @@ resource "aws_default_route_table" "internet_router" {
     var.kafka_exp_tags,
     {
       "Name" = "PhiRo_Kafka Default_RouteTable_Experimental"
-    },
+    }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
 }
 

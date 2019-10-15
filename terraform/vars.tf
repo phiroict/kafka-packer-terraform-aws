@@ -18,7 +18,6 @@ variable "kafka_exp_tags" {
   default = {
     Author      = "Philip Rodrigues"
     State       = "Experimental"
-    ExpiresAt   = "20190701"
     Department  = "CloudOps"
     Description = "Experimental_kafka_cluster_instance"
   }

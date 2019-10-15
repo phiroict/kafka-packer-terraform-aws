@@ -1,20 +1,24 @@
 resource "aws_instance" "kafka_instance_public_broker" {
-  ami           = var.base_kafka_image_ami
+  ami = var.base_kafka_image_ami
   instance_type = var.instance_type
-  key_name      = "kafka-keypair"
+  key_name = "kafka-keypair"
   vpc_security_group_ids = [
     aws_security_group.kafka_cluster.id,
   ]
-  subnet_id  = aws_subnet.exp_kafka-subnet-se-2a.id
+  subnet_id = aws_subnet.exp_kafka-subnet-se-2a.id
   private_ip = "10.201.1.100"
   tags = merge(
-    var.kafka_exp_tags,
-    {
-      "Name" = format(
-        "PhiRo_Kafka_Public Instance_Experimental_%s",
-        var.environment_tg,
-      )
-    },
+  var.kafka_exp_tags,
+  {
+    "Name" = format(
+    "PhiRo_Kafka_Public Instance_Experimental_%s",
+    var.environment_tg,
+    )
+  }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   depends_on = [
     aws_internet_gateway.kafka_cluster_internet_gateway,
@@ -24,22 +28,26 @@ resource "aws_instance" "kafka_instance_public_broker" {
 }
 
 resource "aws_instance" "kafka_instance_private_brokers_1" {
-  ami           = var.base_kafka_image_ami
+  ami = var.base_kafka_image_ami
   instance_type = var.instance_type
-  key_name      = "kafka-keypair"
+  key_name = "kafka-keypair"
   vpc_security_group_ids = [
     aws_security_group.kafka_cluster.id,
   ]
-  subnet_id  = aws_subnet.exp_kafka-subnet-se-2b.id
+  subnet_id = aws_subnet.exp_kafka-subnet-se-2b.id
   private_ip = "10.201.2.100"
   tags = merge(
-    var.kafka_exp_tags,
-    {
-      "Name" = format(
-        "PhiRo_Kafka_Private Instances_Experimental_%s number 1",
-        var.environment_tg,
-      )
-    },
+  var.kafka_exp_tags,
+  {
+    "Name" = format(
+    "PhiRo_Kafka_Private Instances_Experimental_%s number 1",
+    var.environment_tg,
+    )
+  }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   depends_on = [
     aws_internet_gateway.kafka_cluster_internet_gateway,
@@ -49,22 +57,26 @@ resource "aws_instance" "kafka_instance_private_brokers_1" {
 }
 
 resource "aws_instance" "kafka_instance_private_brokers_2" {
-  ami           = var.base_kafka_image_ami
+  ami = var.base_kafka_image_ami
   instance_type = var.instance_type
-  key_name      = "kafka-keypair"
+  key_name = "kafka-keypair"
   vpc_security_group_ids = [
     aws_security_group.kafka_cluster.id,
   ]
-  subnet_id  = aws_subnet.exp_kafka-subnet-se-2c.id
+  subnet_id = aws_subnet.exp_kafka-subnet-se-2c.id
   private_ip = "10.201.3.100"
   tags = merge(
-    var.kafka_exp_tags,
-    {
-      "Name" = format(
-        "PhiRo_Kafka_Private Instances_Experimental_%s number 2",
-        var.environment_tg,
-      )
-    },
+  var.kafka_exp_tags,
+  {
+    "Name" = format(
+    "PhiRo_Kafka_Private Instances_Experimental_%s number 2",
+    var.environment_tg,
+    )
+  }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
   )
   depends_on = [
     aws_internet_gateway.kafka_cluster_internet_gateway,
