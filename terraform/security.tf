@@ -1,11 +1,8 @@
-resource "aws_security_group" "kafka_cluster" {
-  name        = "cluster_configuration"
-  description = "Allow cluster configuration and communication"
-  vpc_id      = aws_vpc.exp_kafka_vpc.id
-
+resource "aws_security_group" "kafka_cluster_bastion" {
+  vpc_id = aws_vpc.exp_kafka_vpc.id
   ingress {
     cidr_blocks = [
-      var.ip_allow_access_ip,
+      var.ip_allow_access_ip4,
     ]
     protocol  = "icmp"
     from_port = 8
@@ -21,9 +18,9 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = [
-      var.ip_allow_access_ip,
+      var.ip_allow_access_ip4,
     ]
-    description = "Access from LIC or home address"
+    description = "Access from origin"
   }
 
   ingress {
@@ -39,6 +36,44 @@ resource "aws_security_group" "kafka_cluster" {
     ]
     description = "Allow subnet access"
   }
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+    description = "No limits for outgoing traffic"
+  }
+}
+resource "aws_security_group" "kafka_cluster" {
+  name        = "cluster_configuration"
+  description = "Allow cluster configuration and communication"
+  vpc_id      = aws_vpc.exp_kafka_vpc.id
+
+  ingress {
+    cidr_blocks = [
+      var.ip_allow_access_ip4,
+    ]
+    protocol  = "icmp"
+    from_port = 8
+    to_port   = 0
+  }
+
+  ingress {
+    # SSH for initial processing
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+
+    # Please restrict your ingress to only necessary IPs and ports.
+    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    cidr_blocks = [
+      aws_vpc.exp_kafka_vpc.cidr_block
+    ]
+    description = "Access from LIC or home address"
+  }
+
 
   ingress {
     # Kafka access
@@ -49,7 +84,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = [
-      var.ip_allow_access_ip,
+
       aws_subnet.exp_kafka-subnet-se-2a.cidr_block,
       aws_subnet.exp_kafka-subnet-se-2b.cidr_block,
       aws_subnet.exp_kafka-subnet-se-2c.cidr_block,
@@ -66,7 +101,7 @@ resource "aws_security_group" "kafka_cluster" {
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = [
-      var.ip_allow_access_ip,
+
       aws_subnet.exp_kafka-subnet-se-2a.cidr_block,
       aws_subnet.exp_kafka-subnet-se-2b.cidr_block,
       aws_subnet.exp_kafka-subnet-se-2c.cidr_block,
@@ -128,8 +163,4 @@ resource "aws_key_pair" "kafka-keypair" {
   key_name   = "kafka-keypair"
 }
 
-variable "aws_public_key" {
-  type    = string
-  default = ""
-}
 

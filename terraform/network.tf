@@ -62,12 +62,12 @@ resource "aws_subnet" "exp_kafka-subnet-se-2c" {
 }
 
 resource "aws_eip" "kafka_ip_address" {
-  instance = aws_instance.kafka_instance_public_broker.id
+  instance = aws_instance.bastion.id
   vpc      = true
   tags = merge(
     var.kafka_exp_tags,
     {
-      "Name" = "PhiRo_Kafka_ElasticIP_Experimental"
+      "Name" = "PhiRo_Kafka_ElasticIP_Experimental_Bastion"
     }, {
     "CreatedAt" = timestamp(),
   }, {
