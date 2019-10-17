@@ -1,6 +1,6 @@
 variable "base_kafka_image_ami" {
   type    = string
-  default = "ami-0f6f525461ca6509b"
+  default = "ami-03b6907c6bb88e324"
 }
 
 variable "region" {
