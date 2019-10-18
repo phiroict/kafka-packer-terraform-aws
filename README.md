@@ -14,7 +14,7 @@ Kafka server (standalone or cluster).
 
 ## What are we building 
 
-![Layout for Kafka](docs/demo_functional_diagram_kafka.jpg)
+![Layout for Kafka](docs/kafka_module_diagram.jpg)
 
 ## Getting Started
 
@@ -22,10 +22,9 @@ There are a couple of things needed for the script to work.
 
 ### Prerequisites
 
-Packer and AWS Command Line Interface tools need to be installed on your local
-computer. You also need Terraform and the terraform wrapper called `terragrunt`.  
-To build a base image you have to know the id of the latest Debian AMI files
-for the region where you wish to build the AMI.
+Packer, Terraform, Terragrunt, and the AWS Command Line Interface tools need to be installed on your local
+computer.   
+You also need to decide in which region you want to build the stack as you need your packer AMI there as well. 
 
 #### Packer
 
@@ -35,6 +34,7 @@ Packer installation instructions can be found
 We start with building the packer image, or take the one that is already there. Look for a name like: 
 `kafka-2.1.1-(20190527012503)` and take the AMI ID and past that into the variable file (terraform/vars.tf)
 See below
+> Note: Do not forget to clear out old AMI images as they draw a small cost for something you are not likely to use again. 
 
 
 
@@ -110,10 +110,15 @@ Then apply it by
 terraform apply kafka.plan
 ```
 
-You also need to create a terragrunt/secrets.tfvars file with the ssh key you use to get to the kafka instance.
+You also need to create a terragrunt/secrets.json file with the ssh key you use to get to the kafka instance.
 This is then injected by terragrunt.  
+```json
+{
+  "aws_public_key": <yourkeyhere>
+}
+```
 
-
+or 
 
 ```bash
 aws_public_key = "YOUR PUBLIC KEY HERE"

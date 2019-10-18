@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+use strict;
+use warnings FATAL => 'all';
+
 
 if ($#ARGV != 1) {
     print "usage: Use hostname as first argument and port as second argument.\n";
@@ -7,6 +10,7 @@ if ($#ARGV != 1) {
 
 $ho = $ARGV[0];
 $po = $ARGV[1];
+
 
 use IO::Socket;
 my $sock = new IO::Socket::INET(

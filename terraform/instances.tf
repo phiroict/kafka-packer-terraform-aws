@@ -8,7 +8,7 @@ resource "aws_instance" "kafka_instance_private_brokers" {
     aws_security_group.kafka_cluster.id,
   ]
   subnet_id = aws_subnet.exp_kafka-private-subnet[count.index % length(var.azs)].id
-  private_ip = "${var.azs_subnets[var.azs[count.index % length(var.azs)]]}${var.core_ip_subnet_start+count.index}"
+
   tags = merge(
   var.kafka_exp_tags,
   {
@@ -26,7 +26,6 @@ resource "aws_instance" "kafka_instance_private_brokers" {
     aws_internet_gateway.kafka_cluster_internet_gateway,
     aws_key_pair.kafka-keypair,
   ]
-  user_data = data.template_file.kafka_config_pr0.rendered
 }
 
 

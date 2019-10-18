@@ -33,7 +33,7 @@ resource "aws_security_group" "kafka_cluster_bastion" {
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
     cidr_blocks = [
     for subnet in aws_subnet.exp_kafka-private-subnet:
-      subnet.cidr_block
+    subnet.cidr_block
     ]
 
     description = "Allow subnet access"
@@ -71,8 +71,10 @@ resource "aws_security_group" "kafka_cluster" {
 
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    # Allow connections from the public subnet, which is where the bastion lives,
     cidr_blocks = [
-      aws_vpc.exp_kafka_vpc.cidr_block
+    for subnet in aws_subnet.exp_kafka-public-subnet:
+    subnet.cidr_block
     ]
     description = "Access from LIC or home address"
   }

@@ -1,5 +1,5 @@
 resource "aws_vpc" "exp_kafka_vpc" {
-  cidr_block           = "10.201.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   tags = merge(
     var.kafka_exp_tags,
@@ -14,13 +14,13 @@ resource "aws_vpc" "exp_kafka_vpc" {
 }
 
 resource "aws_subnet" "exp_kafka-private-subnet" {
-  count = length(var.azs_subnets)
-  cidr_block = "${var.azs_subnets[var.azs[count.index]]}${"0/24"}"
+  count = length(var.azs_subnets_private)
+  cidr_block = "${var.azs_subnets_private[var.azs[count.index]]}${"0/24"}"
   vpc_id     = aws_vpc.exp_kafka_vpc.id
   tags = merge(
     var.kafka_exp_tags,
     {
-      "Name" = format("PhiRo_Kafka_Subnet%d se-2a_Experimental", count.index )
+      "Name" = format("PhiRo_Kafka_Subnet%d Private_Experimental", count.index )
     }, {
     "CreatedAt" = timestamp(),
   }, {
@@ -30,10 +30,27 @@ resource "aws_subnet" "exp_kafka-private-subnet" {
   availability_zone = var.azs[count.index]
 }
 
+resource "aws_subnet" "exp_kafka-public-subnet" {
+  count = length(var.azs_subnets_public)
+  cidr_block = "${var.azs_subnets_public[var.azs[count.index]]}${"0/24"}"
+  vpc_id     = aws_vpc.exp_kafka_vpc.id
+  tags = merge(
+  var.kafka_exp_tags,
+  {
+    "Name" = format("PhiRo_Kafka_Subnet%d Public_Experimental", count.index )
+  }, {
+    "CreatedAt" = timestamp(),
+  }, {
+    "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }
+  )
+  availability_zone = var.azs[count.index]
+}
 
 
 resource "aws_eip" "kafka_ip_address" {
-  instance = length(aws_instance.bastion) > 0? aws_instance.bastion[0].id : 0
+  count = length(aws_instance.bastion)
+  instance = length(aws_instance.bastion) > 0? aws_instance.bastion[count.index].id : 0
   vpc      = true
   tags = merge(
     var.kafka_exp_tags,

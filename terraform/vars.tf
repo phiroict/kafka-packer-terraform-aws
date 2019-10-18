@@ -26,7 +26,7 @@ variable "kafka_exp_tags" {
 
 variable "ip_allow_access_ip4" {
   type = string
-  default = "151.210.138.94/32"
+  default = "111.69.176.136/32"
   description = "Add initially your own ip4 address here"
 }
 
@@ -71,12 +71,26 @@ variable "azs" {
     "ap-southeast-2c"]
 }
 
-variable "azs_subnets" {
+variable "vpc_cidr" {
+  type = string
+  default = "10.201.0.0/16"
+}
+
+variable "azs_subnets_private" {
   type = map(string )
   default = {
     "ap-southeast-2a"= "10.201.1."
     "ap-southeast-2b"= "10.201.2."
     "ap-southeast-2c"= "10.201.3."
+  }
+}
+
+variable "azs_subnets_public" {
+  type = map(string )
+  default = {
+    "ap-southeast-2a"= "10.201.101."
+    "ap-southeast-2b"= "10.201.102."
+    "ap-southeast-2c"= "10.201.103."
   }
 }
 
