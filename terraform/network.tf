@@ -13,56 +13,27 @@ resource "aws_vpc" "exp_kafka_vpc" {
   )
 }
 
-resource "aws_subnet" "exp_kafka-subnet-se-2a" {
-  cidr_block = "10.201.1.0/24"
+resource "aws_subnet" "exp_kafka-private-subnet" {
+  count = length(var.azs_subnets)
+  cidr_block = "${var.azs_subnets[var.azs[count.index]]}${"0/24"}"
   vpc_id     = aws_vpc.exp_kafka_vpc.id
   tags = merge(
     var.kafka_exp_tags,
     {
-      "Name" = "PhiRo_Kafka_Subnet0 se-2a_Experimental"
+      "Name" = format("PhiRo_Kafka_Subnet%d se-2a_Experimental", count.index )
     }, {
     "CreatedAt" = timestamp(),
   }, {
     "ExpiresAt" = timeadd(timestamp(), "26280h")
   }
   )
-  availability_zone = "ap-southeast-2a"
+  availability_zone = var.azs[count.index]
 }
 
-resource "aws_subnet" "exp_kafka-subnet-se-2b" {
-  cidr_block = "10.201.2.0/24"
-  vpc_id     = aws_vpc.exp_kafka_vpc.id
-  tags = merge(
-    var.kafka_exp_tags,
-    {
-      "Name" = "PhiRo_Kafka_Subnet1_se-2b Experimental"
-    }, {
-    "CreatedAt" = timestamp(),
-  }, {
-    "ExpiresAt" = timeadd(timestamp(), "26280h")
-  }
-  )
-  availability_zone = "ap-southeast-2b"
-}
 
-resource "aws_subnet" "exp_kafka-subnet-se-2c" {
-  cidr_block = "10.201.3.0/24"
-  vpc_id     = aws_vpc.exp_kafka_vpc.id
-  tags = merge(
-    var.kafka_exp_tags,
-    {
-      "Name" = "PhiRo_Kafka_Subnet0_se-2c Experimental"
-    }, {
-    "CreatedAt" = timestamp(),
-  }, {
-    "ExpiresAt" = timeadd(timestamp(), "26280h")
-  }
-  )
-  availability_zone = "ap-southeast-2c"
-}
 
 resource "aws_eip" "kafka_ip_address" {
-  instance = aws_instance.bastion.id
+  instance = length(aws_instance.bastion) > 0? aws_instance.bastion[0].id : 0
   vpc      = true
   tags = merge(
     var.kafka_exp_tags,

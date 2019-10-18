@@ -18,6 +18,9 @@ terraform  {
 
 inputs = {
   environment_tg = "IAmTerragruntHearMeGrunt"
-  base_kafka_image_ami = "ami-03b6907c6bb88e324"
+  base_kafka_image_ami = "ami-0e33f298f56c8ed6c"
   region = "ap-southeast-2"
+  build_bastion = true
+  kafka_cluster_name = "PhiRo's impressive cluster"
+  kafka_cluster_size = 3
 }

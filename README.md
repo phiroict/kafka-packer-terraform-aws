@@ -64,9 +64,13 @@ packer build \
     -var "aws_secret_key=$AWS_SECRET_KEY" \
     -var 'aws_region=ap-southeast-2' \
     -var 'kafka_version=2.1.1' \
-    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \   
+    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \
     kafka.json
   
+```
+Or with aws-vault: 
+```
+ aws-vault exec home -- packer build     -var "aws_access_key=$AWS_ACCESS_KEY"     -var "aws_secret_key=$AWS_SECRET_KEY"     -var 'aws_region=ap-southeast-2'     -var 'kafka_version=2.1.1'     -var "aws_public_key=$SSH_PUBLIC_KEY_STRING"   kafka.json
 ```
 
 #### Script Options
@@ -77,6 +81,7 @@ packer build \
 - `aws_instance_type` - The instance type to use for the build (default value: "t2.micro").
 - `aws_region` - *[required]* The regions were the build will be performed.
 - `aws_secret_key` - *[required]* The AWS secret key.
+- `aws_ssh_username` - The ssh user that is set up by the script, defaults to `admin`
 - `java_build_number` - Java build number (default value: "11").
 - `java_major_version` - Java major version (default value: "8").
 - `java_token` - Java link token (default version: "d54c1d3a095b4ff2b6607d096fa80163").
@@ -85,6 +90,7 @@ packer build \
 - `kafka_version` - *[required]* Kafka version.
 - `system_locale` - Locale for the system (default value: "en_US").
 - `zookeeper_version` - Zookeeper version (default value: "3.4.9").
+
 
 #### Terraform 
 You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
@@ -231,7 +237,7 @@ kafka_config -a 10.201.1.102 -E -i 3 -m 2048m -S -z 10.201.1.100:2181,10.201.1.1
 
 
 #### Configuring a Kafka Broker
-
+(We will use ansible for this, see below) 
 To prepare an instance to act as a Kafka broker the following steps need to be
 performed.
 
@@ -345,13 +351,48 @@ to contribute to this project.
 This project uses [SemVer](http://semver.org/) for versioning. For the versions
 available, see the [tags on this repository](https://github.com/fscm/packer-aws-kafka/tags).
 
+# Post configuration
+To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.
+Note, you need to jump host to run this. 
+
+First configure ssh and ansible to use the jumphost
+
+```
+Host 10.201.*
+    User admin
+    ProxyCommand ssh -W %h:%p jumphost 
+    IdentityFile ~/.ssh/id_rsa_solnet_home
+    
+
+Host jumphost
+    HostName 13.238.72.96
+    User ubuntu
+    IdentityFile ~/.ssh/id_rsa_solnet_home
+    Compression  yes
+    ForwardAgent yes
+    ControlMaster              auto
+    ControlPersist             10m
+
+```
+Where you need to change the `HostName 13.238.72.96` with the correct IP address as that may change.  
+Also add the key to the agent
+```
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa_solnet_home
+```
+
+But this in ssh.cfg in the root of the ansible folder. 
+
+
 ## Authors
 
-* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project
-* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion and upgrades
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project - it was forked and adapted for use 
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion, scalebility, terragrunt/terraform modules and upgrades 
 
 See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
 who participated in this project.
+
+
 
 ## License
 
