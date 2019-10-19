@@ -38,7 +38,6 @@
   become: yes
   vars:
     kafka_cluster_id: 1
-    kludze: [1]
     zookeeper_memory: 512
     kafka_mem: 4096
     zookeepers_sequence: "
@@ -58,6 +57,11 @@
                              {%- endfor %}
                              {{- ips | join('') -}}"
   tasks:
+    - name: Set counter for the broker ids
+      set_fact:
+        broker_id: 0
+        delegate_to: localhost
+        delegate_facts: yes
     - name: Write the template to the target server.
       template:
         src: templates/kafka_zookeeper.jinja2
