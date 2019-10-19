@@ -62,19 +62,16 @@
                              {{- ips | join('') -}}"
     zookeepers: "{{ hostvars['zookeeper_repo']['exported_zookeeper'] }}"
   tasks:
-    - name: Check the values of the imported zookeepers object
-      debug:
-        msg: "{{ zookeepers }}"
     - name: Write the template to the target server.
       template:
         src: templates/kafka_zookeeper.jinja2
         dest: /tmp/kafka-configuration.sh
         mode: 0766
-    - name: Replace zookeeper configuration own address in 0.0.0.0
-      replace:
-        path: /tmp/kafka-configuration.sh
-        regexp: "{{ ansible_default_ipv4.address }},"
-        replace: "0.0.0.0,"
+#    - name: Replace zookeeper configuration own address in 0.0.0.0
+#      replace:
+#        path: /tmp/kafka-configuration.sh
+#        regexp: "{{ ansible_default_ipv4.address }},"
+#        replace: "0.0.0.0,"
     - name: Run the configuration to configure both kafka and zookeeper
       shell: /tmp/kafka-configuration.sh
     - name: Restart zookeeper and kafka to read the configuration.
