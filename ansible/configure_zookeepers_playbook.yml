@@ -32,6 +32,10 @@
         group: "zookeepers"
       with_items:
         "{{ zookeepers.instances }}"
+    - name: Store the zookeeper object in a host to be used in the next playbook
+      add_host:
+        name: "zookeeper_repo"
+        exported_zookeeper: "{{ zookeepers }}"
 
 - name: Configure the zookeepers
   hosts: zookeepers
@@ -56,25 +60,24 @@
                              {{- ips.append(':2181,') }}
                              {%- endfor %}
                              {{- ips | join('') -}}"
+    zookeepers: "{{ hostvars['zookeeper_repo']['exported_zookeeper'] }}"
   tasks:
-    - name: Set counter for the broker ids
-      set_fact:
-        broker_id: 0
-        delegate_to: localhost
-        delegate_facts: yes
+    - name: Check the values of the imported zookeepers object
+      debug:
+        msg: "{{ zookeepers }}"
     - name: Write the template to the target server.
       template:
         src: templates/kafka_zookeeper.jinja2
         dest: /tmp/kafka-configuration.sh
         mode: 0766
-    - name: Replace zookeeper own address in 0.0.0.0
+    - name: Replace zookeeper configuration own address in 0.0.0.0
       replace:
         path: /tmp/kafka-configuration.sh
         regexp: "{{ ansible_default_ipv4.address }},"
         replace: "0.0.0.0,"
-    - name: Run the configuration
+    - name: Run the configuration to configure both kafka and zookeeper
       shell: /tmp/kafka-configuration.sh
-    - name: Restart zookeeper
+    - name: Restart zookeeper and kafka to read the configuration.
       systemd:
         name: "{{ item }}"
         state: restarted

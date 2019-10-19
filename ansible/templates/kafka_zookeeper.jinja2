@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
-{{ hostvars['localhost'].broker_id | int + 1  }}
-sudo zookeeper_config -E -S -i {{ hostvars['localhost'].broker_id }} -m {{zookeeper_memory}}m -n {{zookeepers_sequence}}
-sudo kafka_config -a {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}} -E -i {{ hostvars['localhost'].broker_id }} -m {{kafka_mem}}m -S -z {{kafka_zoo}}
+{% set local_address = hostvars[inventory_hostname]['ansible_default_ipv4']['address'] %}
+{% for zookeeper in zookeepers.instances %}
+    {% if  local_address == zookeeper.network_interfaces[0].private_ip_address %}
+        {%  set broker_id = zookeeper.tags.AnsibleBrokerIDSequence  %}
+sudo zookeeper_config -E -S -i {{ broker_id }} -m {{zookeeper_memory}}m -n {{zookeepers_sequence}}
+sudo kafka_config -a {{local_address}} -E -i {{ broker_id }} -m {{kafka_mem}}m -S -z {{kafka_zoo}}
+    {% endif %}
+{% endfor %}
+
+

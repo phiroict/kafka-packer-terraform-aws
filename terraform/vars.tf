@@ -26,7 +26,7 @@ variable "kafka_exp_tags" {
 
 variable "ip_allow_access_ip4" {
   type = string
-  default = "111.69.176.136/32"
+  default = "111.69.150.132/32"
   description = "Add initially your own ip4 address here"
 }
 
