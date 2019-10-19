@@ -37,7 +37,8 @@
   hosts: zookeepers
   become: yes
   vars:
-    kafka_cluster_id: 2
+    kafka_cluster_id: 1
+    kludze: [1]
     zookeeper_memory: 512
     kafka_mem: 4096
     zookeepers_sequence: "
