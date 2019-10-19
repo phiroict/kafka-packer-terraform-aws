@@ -5,6 +5,10 @@ resource "aws_instance" "bastion" {
   key_name = "kafka-keypair"
   subnet_id = aws_subnet.exp_kafka-public-subnet[0].id
   security_groups = [aws_security_group.kafka_cluster_bastion.id]
+  tags = {
+    Name= "Kafka Cluster Jumphost"
+    AnsibleType= "KafkaJump"
+  }
   lifecycle {
     ignore_changes = all
   }

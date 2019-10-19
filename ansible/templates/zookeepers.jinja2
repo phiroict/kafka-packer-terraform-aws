@@ -1,4 +1,0 @@
-zookeepers_ips:
-{% for h in groups['zookeepers'] %}
-    - {{ hostvars[h].ansible_ssh_host }}
-{% endfor %}

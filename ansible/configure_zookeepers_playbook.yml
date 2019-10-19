@@ -21,10 +21,11 @@
         security_token: "{{ lookup('env','AWS_SECURITY_TOKEN') }}"
         filters:
           "tag:AnsibleType": Zookeeper
+          instance-state-name: [ "running" ]
       register: zookeepers
-    #    - name: Print data zookeepers
-    #      debug:
-    #        msg: "Got these zookeepers : {{ zookeepers }}"
+    - name: Print data zookeepers
+      debug:
+        msg: "Got these zookeepers : {{ zookeepers }}"
     - name: Add the zookeepers
       add_host:
         name: "{{ item.private_ip_address }}"
@@ -38,7 +39,7 @@
   vars:
     kafka_cluster_id: 2
     zookeeper_memory: 512
-    kafka_mem: 2048
+    kafka_mem: 4096
     zookeepers_sequence: "
                              {%- set ips = [] %}
                              {%- for host in groups['zookeepers'] %}
@@ -51,8 +52,6 @@
     kafka_zoo: "
                              {%- set ips = [] %}
                              {%- for host in groups['zookeepers'] %}
-                             {{- ips.append(loop.index) }}
-                             {{- ips.append(':') }}
                              {{- ips.append(hostvars[host]['ansible_default_ipv4'].address) }}
                              {{- ips.append(':2181,') }}
                              {%- endfor %}
@@ -72,6 +71,9 @@
       shell: /tmp/kafka-configuration.sh
     - name: Restart zookeeper
       systemd:
-        name: zookeeper
+        name: "{{ item }}"
         state: restarted
+      with_items:
+      - zookeeper
+      - kafka
 
