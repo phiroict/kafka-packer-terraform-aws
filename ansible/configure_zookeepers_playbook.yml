@@ -1,14 +1,77 @@
 ---
-  - name: Jumphost configuration
-    hosts : jumphost
-    become: yes
-    tasks:
+- name: Jumphost configuration
+  hosts: jumphost
+  become: yes
+  tasks:
     - name: create file for testing
       file:
         state: touch
         path: /tmp/bla
-  - name: zookeeper configuration
-    hosts: local
-    become: yes
+- name: zookeeper configuration
+  hosts: localhost
+  become: yes
+  vars:
+    aws_region: ap-southeast-2
+  tasks:
+    - name: Get zookeeper instances
+      ec2_instance_facts:
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+        aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+        security_token: "{{ lookup('env','AWS_SECURITY_TOKEN') }}"
+        filters:
+          "tag:AnsibleType": Zookeeper
+      register: zookeepers
+    #    - name: Print data zookeepers
+    #      debug:
+    #        msg: "Got these zookeepers : {{ zookeepers }}"
+    - name: Add the zookeepers
+      add_host:
+        name: "{{ item.private_ip_address }}"
+        group: "zookeepers"
+      with_items:
+        "{{ zookeepers.instances }}"
 
+- name: Configure the zookeepers
+  hosts: zookeepers
+  become: yes
+  vars:
+    kafka_cluster_id: 2
+    zookeeper_memory: 512
+    kafka_mem: 2048
+    zookeepers_sequence: "
+                             {%- set ips = [] %}
+                             {%- for host in groups['zookeepers'] %}
+                             {{- ips.append(loop.index) }}
+                             {{- ips.append(':') }}
+                             {{- ips.append(hostvars[host]['ansible_default_ipv4'].address) }}
+                             {{- ips.append(',') }}
+                             {%- endfor %}
+                             {{- ips | join('') -}}"
+    kafka_zoo: "
+                             {%- set ips = [] %}
+                             {%- for host in groups['zookeepers'] %}
+                             {{- ips.append(loop.index) }}
+                             {{- ips.append(':') }}
+                             {{- ips.append(hostvars[host]['ansible_default_ipv4'].address) }}
+                             {{- ips.append(':2181,') }}
+                             {%- endfor %}
+                             {{- ips | join('') -}}"
+  tasks:
+    - name: Write the template to the target server.
+      template:
+        src: templates/kafka_zookeeper.jinja2
+        dest: /tmp/kafka-configuration.sh
+        mode: 0766
+    - name: Replace zookeeper own address in 0.0.0.0
+      replace:
+        path: /tmp/kafka-configuration.sh
+        regexp: "{{ ansible_default_ipv4.address }},"
+        replace: "0.0.0.0,"
+    - name: Run the configuration
+      shell: /tmp/kafka-configuration.sh
+    - name: Restart zookeeper
+      systemd:
+        name: zookeeper
+        state: restarted
 

@@ -386,7 +386,12 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_rsa_solnet_home
 ```
 
-But this in ssh.cfg in the root of the ansible folder. 
+Put this in ssh.cfg in the root of the ansible folder.
+Now run the 
+```
+ . ./prime-ssh-connection.sh 
+``` 
+to prime the ssh keys, in this file set the private key to use. 
 
 
 ## Authors

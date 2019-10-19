@@ -20,6 +20,8 @@ resource "aws_instance" "kafka_instance_private_brokers" {
     "CreatedAt" = timestamp(),
   }, {
     "ExpiresAt" = timeadd(timestamp(), "26280h")
+  }, {
+    "AnsibleType": "Zookeeper"
   }
   )
   depends_on = [

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+sudo zookeeper_config -E -S -i {{kafka_cluster_id}} -m {{zookeeper_memory}}m -n {{zookeepers_sequence}}
+sudo kafka_config -a {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}} -E -i -m {{kafka_mem}}m -S -z {{kafka_zoo}}
