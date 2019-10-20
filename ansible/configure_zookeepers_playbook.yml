@@ -1,12 +1,4 @@
 ---
-- name: Jumphost configuration
-  hosts: jumphost
-  become: yes
-  tasks:
-    - name: create file for testing
-      file:
-        state: touch
-        path: /tmp/bla
 - name: zookeeper configuration
   hosts: localhost
   become: yes
