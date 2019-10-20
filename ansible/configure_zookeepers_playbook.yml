@@ -23,9 +23,6 @@
           "tag:AnsibleType": Zookeeper
           instance-state-name: [ "running" ]
       register: zookeepers
-    - name: Print data zookeepers
-      debug:
-        msg: "Got these zookeepers : {{ zookeepers }}"
     - name: Add the zookeepers
       add_host:
         name: "{{ item.private_ip_address }}"
@@ -46,10 +43,10 @@
     kafka_mem: 4096
     zookeepers_sequence: "
                              {%- set ips = [] %}
-                             {%- for host in groups['zookeepers'] %}
-                             {{- ips.append(loop.index) }}
+                             {%- for host in hostvars['zookeeper_repo']['exported_zookeeper'].instances %}
+                             {{- ips.append(host.tags.AnsibleBrokerIDSequence) }}
                              {{- ips.append(':') }}
-                             {{- ips.append(hostvars[host]['ansible_default_ipv4'].address) }}
+                             {{- ips.append(host.network_interfaces[0].private_ip_address) }}
                              {{- ips.append(',') }}
                              {%- endfor %}
                              {{- ips | join('') -}}"
@@ -67,11 +64,11 @@
         src: templates/kafka_zookeeper.jinja2
         dest: /tmp/kafka-configuration.sh
         mode: 0766
-#    - name: Replace zookeeper configuration own address in 0.0.0.0
-#      replace:
-#        path: /tmp/kafka-configuration.sh
-#        regexp: "{{ ansible_default_ipv4.address }},"
-#        replace: "0.0.0.0,"
+    - name: Replace zookeeper configuration own address in 0.0.0.0
+      replace:
+        path: /tmp/kafka-configuration.sh
+        regexp: "{{ ansible_default_ipv4.address }},"
+        replace: "0.0.0.0,"
     - name: Run the configuration to configure both kafka and zookeeper
       shell: /tmp/kafka-configuration.sh
     - name: Restart zookeeper and kafka to read the configuration.
