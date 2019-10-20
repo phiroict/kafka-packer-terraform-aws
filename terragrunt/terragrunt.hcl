@@ -1,5 +1,5 @@
 terraform  {
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.5.1"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.6.0"
   extra_arguments "custom_vars" {
     commands = [
       "apply",
