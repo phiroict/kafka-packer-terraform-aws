@@ -36,15 +36,6 @@ variable "ip_allow_access_ip6" {
   description = "Add initially your own ip6 address here"
 }
 
-variable "environment_tg" {
-  type = string
-  default = "not_set"
-}
-
-variable "core_ip_subnet_start" {
-  type = number
-  default = 100
-}
 
 variable "kafka_cluster_size" {
   type = number

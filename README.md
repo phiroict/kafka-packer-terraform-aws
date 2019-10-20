@@ -1,16 +1,29 @@
 # Apache Kafka AMI
 This is based on the git project `https://github.com/fscm/packer-aws-kafka` that was outdated and needed to be rewritten. 
+After that I completely changed my mind and therefore the project.
+This is a three stage project to create working kafka cluster.
 
-AMI that should be used to create virtual machines with Apache Kafka
-installed.
 
 ## Synopsis
-
+Phase 1
 This script will create an AMI with Apache Kafka installed and with all of
 the required initialization scripts.
-
+Phase 2
 The AMI resulting from this script should be the one used to instantiate a
 Kafka server (standalone or cluster).
+Phase 3
+The configuration for anything than stand alone is done by ansible. 
+
+## Technology stack
+- Terraform 0.12.10
+- Terragrunt 0.20.4
+- Aws cli aws-cli/1.16.263 Python/3.7.4 Linux/5.3.7-arch1-1-ARCH botocore/1.12.253
+- aws-vault v4.6.4
+- packer 1.4.1
+- Kafka 2.1.1
+- Zookeeper 3.4.9
+- Java 1.8.222
+- ansible 2.8.5
 
 ## What are we building 
 
@@ -23,11 +36,12 @@ There are a couple of things needed for the script to work.
 ### Prerequisites
 
 Packer, Terraform, Terragrunt, and the AWS Command Line Interface tools need to be installed on your local
-computer.   
+computer with a profile configured to connect to aws. 
+As an convenience you can install aws-vault to inject the AWS vars in your session. Your call.   
 You also need to decide in which region you want to build the stack as you need your packer AMI there as well. 
 
 #### Packer
-
+_Phase 1_  
 Packer installation instructions can be found
 [here](https://www.packer.io/docs/installation.html).
 
@@ -41,6 +55,7 @@ See below
 #### AWS Command Line Interface
 
 AWS Command Line Interface installation instructions can be found [here](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
+AWS-vault can be installed from [here](https://github.com/99designs/aws-vault)
 
 #### Debian AMI's for Packer
 
@@ -49,6 +64,7 @@ AMI will be used.
 
 A list of all the Debian AMI id's can be found at the Debian official page:
 [Debian official Amazon EC2 Images](https://wiki.debian.org/Cloud/AmazonEC2Image/)
+I am a Debian fan but there is nothing stopping you using different distros.  
 
 ### Usage
 
@@ -72,6 +88,7 @@ Or with aws-vault:
 ```
  aws-vault exec home -- packer build     -var "aws_access_key=$AWS_ACCESS_KEY"     -var "aws_secret_key=$AWS_SECRET_KEY"     -var 'aws_region=ap-southeast-2'     -var 'kafka_version=2.1.1'     -var "aws_public_key=$SSH_PUBLIC_KEY_STRING"   kafka.json
 ```
+In this case you do not need to set the AWS env it is set for this call only and then removed. 
 
 #### Script Options
 
@@ -93,6 +110,7 @@ Or with aws-vault:
 
 
 #### Terraform 
+_Phase 2_  
 You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
 Then run from the terraform folder, put in the vars section the name of the image just build. 
 For instance: 
@@ -104,6 +122,7 @@ terraform plan -var 'base_kafka_image_aim=ami-05aa27f98e8b3c6b8'  -var "aws_publ
 Note that if you want to interpolate the bash variables you need to use double quotes around the values, not single quotes as otherwise this will take the literal string and not
 the value in it. 
 
+You need not do this when using `aws-vault`
 
 Then apply it by 
 ```bash
@@ -128,7 +147,7 @@ aws_public_key = "YOUR PUBLIC KEY HERE"
 The secret* pattern is excluded from git so it will not be pushed into git. 
 
 
-Now use the kafka.json script with packer to create the kafka image to use, this can be done by adding it to the commandline as before or set it in the 
+Now use the `packer build kafka.json` script with packer to create the kafka image to use, this can be done by adding it to the commandline as before or set it in the 
 default of the variable in the var.tf file. The script returns a ami id and you need to place 
 this into the vars.tf file.
 For instance 
@@ -138,15 +157,16 @@ variable "base_kafka_image_aim" {
   default = "ami-03fd73a66cf574a36"
 }
 ```
-
+Or pass it in as a var `-var 'base_kafka_image_aim=ami-03fd73a66cf574a36'`
 After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
 
 #### Terragrunt 
 
 In the terragrunt folder are the terragrunt scripts. The commands are likewise but will build the infra from the 
 git tag helping versioning. 
+This will use the terraform script as a terraform module. See [here](https://blog.gruntwork.io/how-to-create-reusable-infrastructure-with-terraform-modules-25526d65f73d)
 
-You need to create a secrets.tfvars file that cannot be stored in git. In this case it will hold the 
+You need to create a secrets.json file that cannot be stored in git. In this case it will hold the 
 public ssh key injected in the public kafka broker. 
 
 ```json
@@ -162,17 +182,123 @@ terragrunt init
 # Plan the same as in terraform
 terragrunt plan
 # Now apply 
-terragrunt apply -var-file secrets.tfvars 
+terragrunt apply -var-file secrets.json  
 
+```
+or include this in the terragrunt.hcl file: 
+```hcl-terraform
+  # With the get_terragrunt_dir() function, you can use relative paths!
+    arguments = [
+      "-var-file=secrets.json"
+    ]
 ```
 Note the explicit var-file reference in the apply to avoid storing secrets in your planfile. 
 
-#### Result 
-We now have three kafka servers with a fixed IP address 
-10.201.1.100 - 10.201.1.101 - 10.201.1.102 with the first public accessible. (Note, you would never do that in production)
+inputs / vars 
 
+| var name | default | type | meaning |
+| --- | --- | --- | --- |
+| base_kafka_image_ami | "ami-0e33f298f56c8ed6c" | String | Base kafka AMI (build by packer) |
+|   region | "ap-southeast-2"| String | AWS region you want to deploy to |
+ |  build_bastion | true| boolean | Build a bastion to connect to, needed for ansible |
+ |  kafka_cluster_name | "Kafka cluster"| String | Base kafka AMI (build by packer) |
+ |  kafka_cluster_size | 3| Number | number of kafka/zookeeper instances |
+ |  kafka_instance_type | "m4.large"| String | AWS instance type, needs to be available in all azs you choose later |
+ |  kafka_exp_tags | {<br>     Author= "Philip Rodrigues"<br>     State= "Experimental"<br>     Department= "CloudOps"<br>     Description= "Experimental_kafka_cluster_instance"<br>  } | map | Tag set for all resources supporting tags | 
+ |  ip_allow_access_ip4|"111.69.150.132/32" | String - cidr |IPv4 address that is allowed to connect to the bastion from the BBI
+ |  ip_allow_access_ip6|""| String - cidr |IPv6 address that is allowed to connect to the bastion from the BBI (Not implemented yet|
+ |  azs | ["ap-southeast-2a",<br>    "ap-southeast-2b",<br>   "ap-southeast-2c"]<br>| list of String | List of availability zones to run the brokers in, needs to be in the region | 
+ |  vpc_cidr | "10.201.0.0/16" | String - cidr | Main range for the VPC | 
+ |  azs_subnets_private | { <br>    "ap-southeast-2a"= "10.201.1."<br>    "ap-southeast-2b"= "10.201.2."<br>    "ap-southeast-2c"= "10.201.3."<br>  } | map | Defines ip ranges per AZ for the private broker subnet, needs to fit in the VPC selection above , is aways a /24 range|
+ |  azs_subnets_public | { <br>    "ap-southeast-2a"= "10.201.101."<br>    "ap-southeast-2b"= "10.201.102."<br>    "ap-southeast-2c"= "10.201.103."}<br> | map | Defines ip ranges per AZ for the public access, needs to fit in the VPC selection above , is aways a /24 range|
+ |  kafka_cluster_name | "MyKafkaSet"| String | Name to give to the cluster will be appended with a 0 based index|
+
+
+#### Result 
+We now have three kafka servers with a dynamic IP address 
+These instances are not in cluster and do not find each other. We will remedy this in phase 3
+
+
+# Post configuration with ansible
+_Phase 3_  
+To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.
+Note, you need to jump host to run this. 
+
+First configure ssh and ansible to use the jumphost in the ansible/ssh.cfg file.
+
+```
+Host 10.201.*
+    User admin
+    ProxyCommand ssh -W %h:%p jumphost 
+    IdentityFile ~/.ssh/id_rsa_solnet_home
+    
+
+Host jumphost
+    HostName 13.238.72.96
+    User ubuntu
+    IdentityFile ~/.ssh/id_rsa_solnet_home
+    Compression  yes
+    ForwardAgent yes
+    ControlMaster              auto
+    ControlPersist             10m
+
+```
+
+Where you need to change the `HostName 13.238.72.96` with the correct IP address as that may change. Terraform will print that address on completion of the apply.   
+Also add the key to the agent
+
+**What does this do?**
+
+It will define the jumphost so you can use `ssh jumphost` to get on the bastion. (bastion and jumphost are used interchangeable)   it will use the ssh key and forward the key. 
+Now you also define that all ssh login starting with 10.201 will be routed through the jumphost. You may notice that the packer script created the admin user. 
+
+To prime the ssh connection you run this 
+```
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa_solnet_home
+```
+To make life easy this is in the prime-ssh-connection.sh script. 
+
+Now run the 
+```
+ . ./prime-ssh-connection.sh 
+``` 
+to prime the ssh keys, in this file set the private key to use. You need the extra period in the front to export the env settings. 
+
+Now configure the kafka / zookeepers by running 
+```bash
+cd ansible
+bash ./apply-configuration.sh
+```
+That should take care of the kafka cluster setup. 
+
+## What does this do? 
+ It runs the ansible playbook configure_zookeeper_playbook.yml with configuration from the hosts file. 
+ ```
+ aws-vault exec home -- ansible-playbook -i hosts configure_zookeepers_playbook.yml
+ ```
+It creates the kafka commands on each broker(See below): 
+```
+sudo zookeeper_config -E -S -i {{ broker_id }} -m {{zookeeper_memory}}m -n {{zookeepers_sequence}}
+sudo kafka_config -a {{local_address}} -E -i {{ broker_id }} -m {{kafka_mem}}m -S -z {{kafka_zoo}}
+```
+And then executes them thereby setting up the cluster. 
+
+
+# Wrapping up 
+## Authors
+
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project - it was forked and adapted for use 
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion, scalebility, terragrunt/terraform/ansible modules and upgrades 
+
+See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
+who participated in this project.
+
+# Details configuration kafka and zookeeper
 ### Instantiate a Cluster
 
+
+#### Description of the tools that ansible will call. 
 In order to end up with a functional Kafka Cluster some configurations have to
 be performed after instantiating the servers.
 
@@ -206,64 +332,20 @@ Usage: kafka_config [options]
 * `-W <SECONDS>` - Waits the specified amount of seconds before starting the Kafka service (default value is '0').
 * `-z <ENDPOINT>` - Sets a Zookeeper server endpoint to be used by the Kafka broker (defaut value is 'localhost:2181'). Several Zookeeper endpoints can be set by either using extra `-z` options or if separated with a comma on the same `-z` option.
 
+
+[Configuration Script](#kafka-configuration-script) section for more details
+
 We configure and run the kafka and zookeepers from the user_data script in the terraform script. 
 Check the `template.tf` and the `instances.tf` scripts. For documentation we show what we actually run on the 
 servers on deployment complete: 
 
-
-We are running from the 10.201.1.100 (Public broker 0)
-```bash
-# Zoopkeeper
-zookeeper_config -E -S -i 1 -m 512m -n 1:0.0.0.0,2:10.201.1.101,3:10.201.1.102
-
-# Kafka
-kafka_config -a 10.201.1.100 -E -i 1 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
-```
+Now how do we know the ip addresses and the broker ids? Since we do not know this till terraform has been completed. 
+Terraform AFAIK does not have post deployment tasks, so we need to run this after terraform has been completed.  
+Entering ansible. 
+ 
 
 
-We are running from the 10.201.1.101 (Private broker 0)
-```bash
-# Zoopkeeper
-zookeeper_config -E -S -i 2 -m 512m -n 1:10.201.1.100,2:0.0.0.0,3:10.201.1.102
-
-# Kafka
-kafka_config -a 10.201.1.101 -E -i 2 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
-```
-
-
-We are running from the 10.201.1.102 (Private broker 1)
-```bash
-# Zoopkeeper
-zookeeper_config -E -S -i 3 -m 512m -n 1:10.201.1.100,2:10.201.1.101,3:0.0.0.0
-
-# Kafka
-kafka_config -a 10.201.1.102 -E -i 3 -m 2048m -S -z 10.201.1.100:2181,10.201.1.101:2181,10.201.1.102:2181
-```
-
-
-#### Configuring a Kafka Broker
-(We will use ansible for this, see below) 
-To prepare an instance to act as a Kafka broker the following steps need to be
-performed.
-
-Run the configuration tool (*kafka_config*) to configure the instance.
-
-```
-kafka_config -a kafka01.mydomain.tld -E -S -i 1 -z zookeeper01.mydomain.tld:2181
-```
-
-Localhost:
-```bash
-kafka_config -a localhost -E -S -i 1 -z localhost:2181
-```
-
-After this steps a Kafka broker (for either a single instance or a cluster
-setup) should be running and configured to start on server boot.
-
-More options can be used on the instance configuration, see the
-[Configuration Script](#kafka-configuration-script) section for more details
-
-### Instantiate Zookeeper
+#### Instantiate Zookeeper
 
 Is it possible to use the included Zookeeper installation to instantiate a
 Zookeeper node (standalone or as part of a cluster).
@@ -274,7 +356,7 @@ be performed after instantiating the servers.
 To help perform those configurations a small script is included on the AWS
 image. The script is called **zookeeper_config**.
 
-#### Zookeeper Configuration Script
+##### Zookeeper Configuration Script
 
 The script can and should be used to set some of the Zookeeper options as well
 as setting the Zookeeper service to start at boot.
@@ -340,6 +422,15 @@ The following ports will have to be configured on Security Groups.
 | Zookeeper    | 2888:3888 |    TCP   |
 | Kafka Broker | 9092      |    TCP   |
 
+After the theory now how we are setting these tools to be triggered by ansible. 
+
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE)
+file for details
+
 ## Contributing
 
 1. Fork it!
@@ -355,56 +446,3 @@ to contribute to this project.
 
 This project uses [SemVer](http://semver.org/) for versioning. For the versions
 available, see the [tags on this repository](https://github.com/fscm/packer-aws-kafka/tags).
-
-# Post configuration
-To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.
-Note, you need to jump host to run this. 
-
-First configure ssh and ansible to use the jumphost
-
-```
-Host 10.201.*
-    User admin
-    ProxyCommand ssh -W %h:%p jumphost 
-    IdentityFile ~/.ssh/id_rsa_solnet_home
-    
-
-Host jumphost
-    HostName 13.238.72.96
-    User ubuntu
-    IdentityFile ~/.ssh/id_rsa_solnet_home
-    Compression  yes
-    ForwardAgent yes
-    ControlMaster              auto
-    ControlPersist             10m
-
-```
-Where you need to change the `HostName 13.238.72.96` with the correct IP address as that may change.  
-Also add the key to the agent
-```
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa_solnet_home
-```
-
-Put this in ssh.cfg in the root of the ansible folder.
-Now run the 
-```
- . ./prime-ssh-connection.sh 
-``` 
-to prime the ssh keys, in this file set the private key to use. 
-
-
-## Authors
-
-* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project - it was forked and adapted for use 
-* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion, scalebility, terragrunt/terraform modules and upgrades 
-
-See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
-who participated in this project.
-
-
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE)
-file for details
