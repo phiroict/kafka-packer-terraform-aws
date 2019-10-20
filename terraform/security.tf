@@ -114,7 +114,7 @@ resource "aws_security_group" "kafka_cluster" {
   ingress {
     # Kafka cluster leader communication
     from_port = 2888
-    to_port = 3889
+    to_port = 2888
     protocol = "tcp"
 
     # Please restrict your ingress to only necessary IPs and ports.
@@ -125,7 +125,20 @@ resource "aws_security_group" "kafka_cluster" {
     ]
     description = "Kafka leader communication"
   }
+  ingress {
+    # Kafka cluster leader communication
+    from_port = 3888
+    to_port = 3888
+    protocol = "tcp"
 
+    # Please restrict your ingress to only necessary IPs and ports.
+    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    cidr_blocks = [
+    for block in aws_subnet.exp_kafka-private-subnet:
+    block.cidr_block
+    ]
+    description = "Kafka leader communication"
+  }
   egress {
     from_port = 0
     to_port = 0

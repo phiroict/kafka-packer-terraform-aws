@@ -1,18 +1,7 @@
-# Apache Kafka AMI
+# Apache Kafka Cluster from scratch
 This is based on the git project `https://github.com/fscm/packer-aws-kafka` that was outdated and needed to be rewritten. 
 After that I completely changed my mind and therefore the project.
 This is a three stage project to create working kafka cluster.
-
-
-## Synopsis
-Phase 1
-This script will create an AMI with Apache Kafka installed and with all of
-the required initialization scripts.
-Phase 2
-The AMI resulting from this script should be the one used to instantiate a
-Kafka server (standalone or cluster).
-Phase 3
-The configuration for anything than stand alone is done by ansible. 
 
 ## Technology stack
 - Terraform 0.12.10
@@ -24,6 +13,79 @@ The configuration for anything than stand alone is done by ansible.
 - Zookeeper 3.4.9
 - Java 1.8.222
 - ansible 2.8.5
+
+
+## Synopsis
+Create a working kafka cluster in three phases using terraform, ansible and packer. 
+
+**Phase 1**  
+This script will create an AMI with Apache Kafka installed and with all of
+the required initialization scripts.  
+
+**Phase 2**  
+The AMI resulting from this script should be the one used to instantiate a
+Kafka server (standalone or cluster).
+  
+**Phase 3**  
+The configuration for anything else than stand alone is done by ansible. 
+
+# TL;DR
+**Step Zero**  
+You need: 
+- An AWS account with key and secret key to accounts that allow you to create ec2, security groups, vpc, subnets, ssh keys etc. 
+- An ssh key that you can pass to the aws stack
+- ssh client installed 
+- Preferable linux or mac, windows needs other actions I am not familiar with. 
+- All tech stack applications installed.   
+
+**Step One**  
+
+Setup aws-vault with 
+```
+aws add home
+```
+Follow the instructions   
+
+**Step Two**  
+
+Now build kafka base image with (Replace values as needed) 
+
+```
+packer build \
+    -var "aws_access_key=$AWS_ACCESS_KEY" \
+    -var "aws_secret_key=$AWS_SECRET_KEY" \
+    -var 'aws_region=ap-southeast-2' \
+    -var 'kafka_version=2.1.1' \
+    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \
+    kafka.json
+ 
+```
+Grab the ami id and pass through to terragrunt
+
+**Step Three**
+
+```
+cd terragrunt
+terragrunt plan -var "base_kafka_image_ami=<theoneyougrabbed>"
+terragrunt apply
+cd ..
+```
+Grab the bastion ip address that terraform gives you on successful completion. 
+and place it in `ansible/ssh.cfg`
+
+**Step Four**
+
+Then run 
+```
+cd ansible
+. ./prime-ssh-connection.sh
+bash apply-configuration
+```
+
+**Step Five**
+
+Profit!
+
 
 ## What are we building 
 
