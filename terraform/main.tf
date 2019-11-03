@@ -1,3 +1,7 @@
+terraform {
+  backend "s3" {}
+}
+
 resource "aws_instance" "bastion" {
   count = var.build_bastion == true?1:0
   ami = data.aws_ami.ubuntu.id

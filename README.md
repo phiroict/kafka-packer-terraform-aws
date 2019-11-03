@@ -49,7 +49,8 @@ Follow the instructions
 **Step Two**  
 
 Now build kafka base image with (Replace values as needed) 
-
+There are two types, kafka and zookeeper. 
+For kafka
 ```
 packer build \
     -var "aws_access_key=$AWS_ACCESS_KEY" \
@@ -58,6 +59,16 @@ packer build \
     -var 'kafka_version=2.1.1' \
     -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \
     kafka.json
+ 
+```
+For zookeeper
+```
+packer build \
+    -var "aws_access_key=$AWS_ACCESS_KEY" \
+    -var "aws_secret_key=$AWS_SECRET_KEY" \
+    -var 'aws_region=ap-southeast-2' \
+    -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" \
+    zookeeper.json
  
 ```
 Grab the ami id and pass through to terragrunt
@@ -263,7 +274,6 @@ inputs / vars
 | base_kafka_image_ami | "ami-0e33f298f56c8ed6c" | String | Base kafka AMI (build by packer) |
 |   region | "ap-southeast-2"| String | AWS region you want to deploy to |
  |  build_bastion | true| boolean | Build a bastion to connect to, needed for ansible |
- |  kafka_cluster_name | "Kafka cluster"| String | Base kafka AMI (build by packer) |
  |  kafka_cluster_size | 3| Number | number of kafka/zookeeper instances |
  |  kafka_instance_type | "m4.large"| String | AWS instance type, needs to be available in all azs you choose later |
  |  kafka_exp_tags | {<br>     Author= "Philip Rodrigues"<br>     State= "Experimental"<br>     Department= "CloudOps"<br>     Description= "Experimental_kafka_cluster_instance"<br>  } | map | Tag set for all resources supporting tags | 

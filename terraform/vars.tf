@@ -1,6 +1,12 @@
 variable "base_kafka_image_ami" {
   type = string
-  default = "ami-03b6907c6bb88e324"
+  default = "ami-056df8555b0d63e37"
+  description = "This is the ami that is created by the packer process. Get this from the output of the process"
+}
+
+variable "base_zookeeper_image_ami" {
+  type = string
+  default = "ami-0bbab8485567e65bf"
   description = "This is the ami that is created by the packer process. Get this from the output of the process"
 }
 
@@ -14,6 +20,11 @@ variable "kafka_instance_type" {
   default = "m4.large"
 }
 
+variable "zookeeper_instance_type" {
+  type = string
+  default = "m4.large"
+}
+
 variable "kafka_exp_tags" {
   type = map(string)
   default = {
@@ -21,12 +32,24 @@ variable "kafka_exp_tags" {
     State = "Experimental"
     Department = "CloudOps"
     Description = "Experimental_kafka_cluster_instance"
+    Type = "Kafka_Instance"
+  }
+}
+
+variable "zookeeper_exp_tags" {
+  type = map(string)
+  default = {
+    Author = "Philip Rodrigues"
+    State = "Experimental"
+    Department = "CloudOps"
+    Description = "Experimental_kafka_cluster_instance"
+    Type = "Zookeeper_Instance"
   }
 }
 
 variable "ip_allow_access_ip4" {
   type = string
-  default = "111.69.150.132/32"
+  default = "111.69.163.87/32"
   description = "Add initially your own ip4 address here"
 }
 
@@ -42,6 +65,13 @@ variable "kafka_cluster_size" {
   default = 3
   description = "Number of kafka instances to create"
 }
+
+variable "zookeeper_cluster_size" {
+  type = number
+  default = 3
+  description = "Number of zookeeper instances to create"
+}
+
 
 variable "build_bastion" {
   type = bool
@@ -88,4 +118,9 @@ variable "azs_subnets_public" {
 variable "kafka_cluster_name" {
   type = string
   default = "MyKafkaSet"
+}
+
+variable "zookeeper_cluster_name" {
+  type = string
+  default = "MyZookeeperSet"
 }
