@@ -64,7 +64,7 @@
                              {{- ips | join('') -}}"
     kafka_zoo: "
                              {%- set ips = [] %}
-                             {%- for host in hostvars['kafka_repo']['exported_kafka'].instances %}
+                             {%- for host in hostvars['zookeeper_repo']['exported_zookeeper'].instances %}
                              {{- ips.append(host.network_interfaces[0].private_ip_address) }}
                              {{- ips.append(':2181,') }}
                              {%- endfor %}
