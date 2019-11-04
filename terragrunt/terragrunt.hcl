@@ -2,7 +2,7 @@ remote_state {
   backend = "s3"
   config = {
     bucket = "terraform-states-repo"
-    key = "${path_relative_to_include()}/terraform.state}"
+    key = "${path_relative_to_include()}/terraform.state"
     region = "ap-southeast-2"
     encrypt = true
   }
@@ -10,7 +10,7 @@ remote_state {
 
 terraform  {
 
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.6.0"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.7.0"
   extra_arguments "custom_vars" {
     commands = [
       "apply",
@@ -52,7 +52,7 @@ inputs = {
     Description= "Experimental_zookeeper_cluster_instance"
     Type = "Zookeeper_Instance"
   }
-  ip_allow_access_ip4="13.238.125.13/32"
+  ip_allow_access_ip4="111.69.163.87/32"
   ip_allow_access_ip6=""
   azs = ["ap-southeast-2a",
     "ap-southeast-2b",
