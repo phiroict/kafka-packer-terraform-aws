@@ -46,7 +46,7 @@
         name: "kafka_repo"
         exported_kafka: "{{ kafkas }}"
 
-- name: Configure the zookeepers
+- name: Configure the zookeepers and kafka instances
   hosts: zookeepers:kafkas
   become: yes
   vars:

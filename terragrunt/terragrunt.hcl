@@ -34,7 +34,7 @@ inputs = {
   build_bastion = true
   kafka_cluster_name = "Kafka cluster"
   zookeeper_cluster_name = "Zookeeper cluster"
-  kafka_cluster_size = 3
+  kafka_cluster_size = 5
   zookeeper_cluster_size = 3
   kafka_instance_type = "m4.large"
   zookeeper_instance_type = "m4.large"
@@ -52,7 +52,7 @@ inputs = {
     Description= "Experimental_zookeeper_cluster_instance"
     Type = "Zookeeper_Instance"
   }
-  ip_allow_access_ip4="111.69.163.87/32"
+  ip_allow_access_ip4="118.148.93.26/32"
   ip_allow_access_ip6=""
   azs = ["ap-southeast-2a",
     "ap-southeast-2b",

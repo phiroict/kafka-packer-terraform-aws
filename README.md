@@ -77,7 +77,7 @@ Grab the ami id and pass through to terragrunt
 
 ```
 cd terragrunt
-terragrunt plan -var "base_kafka_image_ami=<theoneyougrabbed>"
+terragrunt plan -var "base_kafka_image_ami=<theoneyougrabbed_kafka>" -var "base_zookeeper_image_ami=<theoneyougrabbed_zookeeper>"
 terragrunt apply
 cd ..
 ```
@@ -97,6 +97,8 @@ bash apply-configuration
 
 Profit!
 
+
+# More details? let's go!: 
 
 ## What are we building 
 
@@ -272,11 +274,15 @@ inputs / vars
 | var name | default | type | meaning |
 | --- | --- | --- | --- |
 | base_kafka_image_ami | "ami-0e33f298f56c8ed6c" | String | Base kafka AMI (build by packer) |
+| base_zookeeper_image_ami | "" | String | Base zookeeper AMI (build by packer) |
 |   region | "ap-southeast-2"| String | AWS region you want to deploy to |
  |  build_bastion | true| boolean | Build a bastion to connect to, needed for ansible |
- |  kafka_cluster_size | 3| Number | number of kafka/zookeeper instances |
+ |  kafka_cluster_size | 3| Number | number of kafka instances |
+ |  zookeeper_cluster_size | 3| Number | number of zookeeper instances |
  |  kafka_instance_type | "m4.large"| String | AWS instance type, needs to be available in all azs you choose later |
+ |  zookeeper_instance_type | "m4.large"| String | AWS instance type, needs to be available in all azs you choose later |
  |  kafka_exp_tags | {<br>     Author= "Philip Rodrigues"<br>     State= "Experimental"<br>     Department= "CloudOps"<br>     Description= "Experimental_kafka_cluster_instance"<br>  } | map | Tag set for all resources supporting tags | 
+ |  zookeeper_exp_tags | {<br>     Author= "Philip Rodrigues"<br>     State= "Experimental"<br>     Department= "CloudOps"<br>     Description= "Experimental_zookeeper_cluster_instance"<br>  } | map | Tag set for all resources supporting tags |
  |  ip_allow_access_ip4|"111.69.150.132/32" | String - cidr |IPv4 address that is allowed to connect to the bastion from the BBI
  |  ip_allow_access_ip6|""| String - cidr |IPv6 address that is allowed to connect to the bastion from the BBI (Not implemented yet|
  |  azs | ["ap-southeast-2a",<br>    "ap-southeast-2b",<br>   "ap-southeast-2c"]<br>| list of String | List of availability zones to run the brokers in, needs to be in the region | 
@@ -293,8 +299,9 @@ These instances are not in cluster and do not find each other. We will remedy th
 
 # Post configuration with ansible
 _Phase 3_  
-To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.
-Note, you need to jump host to run this. 
+To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.  
+Note, you need to jump host to run this. Though you can call ansible from terraform, i prefer to have separation of concern and leave terraform as an infrastructure provision phase only and ansible as configuration phase. 
+
 
 First configure ssh and ansible to use the jumphost in the ansible/ssh.cfg file.
 
@@ -315,6 +322,8 @@ Host jumphost
     ControlPersist             10m
 
 ```
+
+> TODO: Seems not to be picked up by ansible, for now change this in the config in ~/.ssh/config  
 
 Where you need to change the `HostName 13.238.72.96` with the correct IP address as that may change. Terraform will print that address on completion of the apply.   
 Also add the key to the agent
