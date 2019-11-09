@@ -1,10 +1,14 @@
 # Apache Kafka Cluster from scratch
-This is based on the git project `https://github.com/fscm/packer-aws-kafka` that was outdated and needed to be rewritten. 
-After that I completely changed my mind and therefore the project.
-This is a three stage project to create working kafka cluster.
+This is loosely based on the git project `https://github.com/fscm/packer-aws-kafka` that was outdated and needed to be rewritten.   
+This builds a cluster on AWS in three steps: 
+- Creating the AIMs with kafka and zookeeper using packer.
+- Creating the infrastructure on AWS using terragrunt / terraform.
+- Configuring and starting the cluster using ansible. 
+
+ This is a three stage project to create working kafka cluster.
 
 ## Technology stack
-- Terraform 0.12.10
+- Terraform 0.12.13
 - Terragrunt 0.20.4
 - Aws cli aws-cli/1.16.263 Python/3.7.4 Linux/5.3.7-arch1-1-ARCH botocore/1.12.253
 - aws-vault v4.6.4
