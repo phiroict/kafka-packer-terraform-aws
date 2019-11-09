@@ -509,8 +509,21 @@ The following ports will have to be configured on Security Groups.
 
 After the theory now how we are setting these tools to be triggered by ansible. 
 
+# Terraform module
+This can be used as a kafka module , see the example in the test folder.
+Note that you need to pass the secret key as a var here as you do not use the secrets file.
+You can use the env var by setting it in 
+```
+export KEY=<your ssh key>
+terraform plan -var "aws_public_key=$KEY" -out kafka.plan
+```
+Or pass it as a configuration file. 
+```
+terraform plan -var-file ../terragrunt/secrets.tfvars.json -out kafka.plan
+```
 
 
+# This project
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE)

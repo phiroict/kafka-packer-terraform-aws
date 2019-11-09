@@ -10,7 +10,7 @@ remote_state {
 
 terraform  {
 
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.7.0"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.1"
   extra_arguments "custom_vars" {
     commands = [
       "apply",
@@ -22,7 +22,7 @@ terraform  {
 
     # With the get_terragrunt_dir() function, you can use relative paths!
     arguments = [
-      "-var-file=secrets.json"
+      "-var-file=secrets.tfvars.json"
     ]
   }
 }

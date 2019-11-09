@@ -5,8 +5,12 @@ provider "aws" {
   profile                 = "default"
 }
 
+variable "aws_public_key" {
+  type = string
+}
+
 module "kafka-cluster-test" {
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.0"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.1"
   providers = {
     aws = "aws.aws"
   }
