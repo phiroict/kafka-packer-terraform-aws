@@ -6,8 +6,10 @@ provider "aws" {
 }
 
 module "kafka-cluster-test" {
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.7.0"
-  providers = "aws.aws"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.0"
+  providers = {
+    aws = "aws.aws"
+  }
 
   base_kafka_image_ami = "ami-056df8555b0d63e37"
   base_zookeeper_image_ami = "ami-0bbab8485567e65bf"
