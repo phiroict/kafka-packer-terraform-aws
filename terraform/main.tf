@@ -16,4 +16,5 @@ resource "aws_instance" "bastion" {
   lifecycle {
     ignore_changes = all
   }
+  depends_on = [aws_key_pair.kafka-keypair]
 }

@@ -159,7 +159,6 @@ resource "aws_security_group" "kafka_cluster" {
 resource "aws_key_pair" "kafka-keypair" {
   public_key = var.aws_public_key
   key_name = "kafka-keypair"
-  depends_on = ["aws_instance.bastion"]
 }
 
 

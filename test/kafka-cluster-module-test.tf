@@ -10,7 +10,7 @@ variable "aws_public_key" {
 }
 
 module "kafka-cluster-test" {
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.1"
+  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.3"
   providers = {
     aws = "aws.aws"
   }
