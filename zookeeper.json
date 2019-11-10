@@ -18,7 +18,7 @@
     "system_locale": "en_US",
     "zookeeper_uid": "2006",
     "zookeeper_version": "3.4.9",
-    "ssh_key_pub_path": "/home/phiro/.ssh/id_rsa_solnet_home.pub"
+    "ssh_key_pub_path": "/home/phiro/.ssh/id_rsa_kafka.pub"
   },
   "builders": [
     {

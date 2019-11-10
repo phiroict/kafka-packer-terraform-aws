@@ -7,6 +7,12 @@ This builds a cluster on AWS in three steps:
 
  This is a three stage project to create working kafka cluster.
 
+# Layout of this readme
+We start with a short description, then a TL;DR section for the impatient. Followed by details about the process, concluded by details about the 
+zookeeper and kafka configuration tools used. 
+
+# In short
+
 ## Technology stack
 - Terraform 0.12.13
 - Terragrunt 0.20.4
@@ -25,15 +31,19 @@ Create a working kafka cluster in three phases using terraform, ansible and pack
 **Phase 1**  
 This script will create an AMI with Apache Kafka installed and with all of
 the required initialization scripts.  
+Tools: packer, aws-vault.
 
 **Phase 2**  
 The AMI resulting from this script should be the one used to instantiate a
-Kafka server (standalone or cluster).
+Kafka server (standalone or cluster).  
+Tools : Terragrunt, Terraform, aws-vault
   
 **Phase 3**  
-The configuration for anything else than stand alone is done by ansible. 
+The configuration for anything else than stand alone is done by ansible.  
+Tools: Ansible  
 
 # TL;DR
+
 **Step Zero**  
 You need: 
 - An AWS account with key and secret key to accounts that allow you to create ec2, security groups, vpc, subnets, ssh keys etc. 
@@ -75,7 +85,7 @@ packer build \
     zookeeper.json
  
 ```
-Grab the ami id and pass through to terragrunt
+Grab the ami ids for both and pass through to terragrunt phase later on.
 
 **Step Three**
 
@@ -86,7 +96,11 @@ terragrunt apply
 cd ..
 ```
 Grab the bastion ip address that terraform gives you on successful completion. 
-and place it in `ansible/ssh.cfg`
+and place it in `ansible/ssh.cfg` if that does not work place it in `~/.ssh/config`. 
+
+-OR-
+
+Use it as a module: see `test\kafka-cluster-module-test.tf` how to use it as a module.
 
 **Step Four**
 
@@ -102,7 +116,7 @@ bash apply-configuration
 Profit!
 
 
-# More details? let's go!: 
+# More details? let's go!
 
 ## What are we building 
 
@@ -136,14 +150,14 @@ See below
 AWS Command Line Interface installation instructions can be found [here](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)
 AWS-vault can be installed from [here](https://github.com/99designs/aws-vault)
 
-#### Debian AMI's for Packer
+#### Ubuntu AMI's for Packer
 
-This AMI will be based on an official Debian AMI (Stretch 9). The latest version of that
+This AMI will be based on an official Ubuntu AMI (18.04.1). The latest version of that
 AMI will be used.
 
-A list of all the Debian AMI id's can be found at the Debian official page:
-[Debian official Amazon EC2 Images](https://wiki.debian.org/Cloud/AmazonEC2Image/)
-I am a Debian fan but there is nothing stopping you using different distros.  
+A list of all the Ubuntu AMI id's can be found at the Ubunu official page:
+[Ubuntu 18.04 official Amazon EC2 Images](https://cloud-images.ubuntu.com/locator/ec2/)
+I am an Ubuntu fan but there is nothing stopping you using different distros, you may need to change the ansible scripts especially if you move to CentOS and alike. Have fun!      
 
 ### Usage
 
@@ -165,7 +179,7 @@ packer build \
 ```
 Or with aws-vault: 
 ```
- aws-vault exec home -- packer build     -var "aws_access_key=$AWS_ACCESS_KEY"     -var "aws_secret_key=$AWS_SECRET_KEY"     -var 'aws_region=ap-southeast-2'     -var 'kafka_version=2.1.1'     -var "aws_public_key=$SSH_PUBLIC_KEY_STRING"   kafka.json
+ aws-vault exec home -- packer build -var "aws_access_key=$AWS_ACCESS_KEY" -var "aws_secret_key=$AWS_SECRET_KEY" -var 'aws_region=ap-southeast-2' -var 'kafka_version=2.1.1' -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" kafka.json
 ```
 In this case you do not need to set the AWS env it is set for this call only and then removed. 
 
@@ -174,7 +188,7 @@ In this case you do not need to set the AWS env it is set for this call only and
 - `aws_access_key` - *[required]* The AWS access key.
 - `aws_ami_name` - The AMI name (default value: "kafka").
 - `aws_ami_name_prefix` - Prefix for the AMI name (default value: "").
-- `aws_instance_type` - The instance type to use for the build (default value: "t2.micro").
+- `aws_instance_type` - The instance type to use for the build (default value: "t2.micro"). Note this is for the build of the image, not the running instance itself as that will be selected in the terraform phase.  
 - `aws_region` - *[required]* The regions were the build will be performed.
 - `aws_secret_key` - *[required]* The AWS secret key.
 - `aws_ssh_username` - The ssh user that is set up by the script, defaults to `admin`
@@ -189,14 +203,16 @@ In this case you do not need to set the AWS env it is set for this call only and
 
 
 #### Terraform 
+
 _Phase 2_  
-You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf file.  
+This is just for testing, use terragrunt or the terraform module for actually using it. 
+You need to create or change the .aws/credentials file to be able to run against your aws account. Adapt it in the provider.tf files.  
 Then run from the terraform folder, put in the vars section the name of the image just build. 
 For instance: 
 
 ```bash
 export SSH_PUBLIC_KEY_STRING=<yourkey>
-terraform plan -var 'base_kafka_image_aim=ami-05aa27f98e8b3c6b8'  -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" -out kafka.plan
+terraform plan -var 'base_kafka_image_aim=ami-05aa27f98e8b3c6b8' -var 'base_zookeeper_image_aim=ami-06aa27f98e8b3c6b8' -var "aws_public_key=$SSH_PUBLIC_KEY_STRING" -out kafka.plan
 ``` 
 Note that if you want to interpolate the bash variables you need to use double quotes around the values, not single quotes as otherwise this will take the literal string and not
 the value in it. 
@@ -208,8 +224,8 @@ Then apply it by
 terraform apply kafka.plan
 ```
 
-You also need to create a terragrunt/secrets.json file with the ssh key you use to get to the kafka instance.
-This is then injected by terragrunt.  
+You also need to create a terragrunt/secrets.tfvars.json file with the ssh key you use to get to the kafka instance.
+This is then injected by terragrunt but you can use it with terraform plan as well (See [below]("# Terraform-module")).  
 ```json
 {
   "aws_public_key": <yourkeyhere>
@@ -223,7 +239,7 @@ aws_public_key = "YOUR PUBLIC KEY HERE"
 ```
 
 
-The secret* pattern is excluded from git so it will not be pushed into git. 
+The "secret*" pattern is excluded from git so it will not be pushed into git. 
 
 
 Now use the `packer build kafka.json` script with packer to create the kafka image to use, this can be done by adding it to the commandline as before or set it in the 
@@ -240,6 +256,7 @@ Or pass it in as a var `-var 'base_kafka_image_aim=ami-03fd73a66cf574a36'`
 After the terraform apply we have three servers, one with a public ip to be able to set up the cluster, and then two other brokers running on the same machine / base image. 
 
 #### Terragrunt 
+*Preferred way of building*  
 
 In the terragrunt folder are the terragrunt scripts. The commands are likewise but will build the infra from the 
 git tag helping versioning. 
@@ -304,7 +321,8 @@ These instances are not in cluster and do not find each other. We will remedy th
 # Post configuration with ansible
 _Phase 3_  
 To make the process scalable we do not always know the exact ip address so we use ansible as a post deployment tool. This will set up zookeeper and then restart the services to run the application.  
-Note, you need to jump host to run this. Though you can call ansible from terraform, i prefer to have separation of concern and leave terraform as an infrastructure provision phase only and ansible as configuration phase. 
+Note: You need to jump host to run this.  
+Note: Though you can call ansible from terraform, i prefer to have separation of concern and leave terraform as an infrastructure provision phase only and ansible as configuration phase. 
 
 
 First configure ssh and ansible to use the jumphost in the ansible/ssh.cfg file.
@@ -313,13 +331,13 @@ First configure ssh and ansible to use the jumphost in the ansible/ssh.cfg file.
 Host 10.201.*
     User admin
     ProxyCommand ssh -W %h:%p jumphost 
-    IdentityFile ~/.ssh/id_rsa_solnet_home
+    IdentityFile ~/.ssh/id_rsa_kafka
     
 
 Host jumphost
     HostName 13.238.72.96
     User ubuntu
-    IdentityFile ~/.ssh/id_rsa_solnet_home
+    IdentityFile ~/.ssh/id_rsa_kafka
     Compression  yes
     ForwardAgent yes
     ControlMaster              auto
@@ -340,7 +358,7 @@ Now you also define that all ssh login starting with 10.201 will be routed throu
 To prime the ssh connection you run this 
 ```
 eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa_solnet_home
+ssh-add ~/.ssh/id_rsa_kafka
 ```
 To make life easy this is in the prime-ssh-connection.sh script. 
 
@@ -370,14 +388,6 @@ sudo kafka_config -a {{local_address}} -E -i {{ broker_id }} -m {{kafka_mem}}m -
 And then executes them thereby setting up the cluster. 
 
 
-# Wrapping up 
-## Authors
-
-* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project - it was forked and adapted for use 
-* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion, scalebility, terragrunt/terraform/ansible modules and upgrades 
-
-See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
-who participated in this project.
 
 # Details configuration kafka and zookeeper
 ### Instantiate a Cluster
@@ -509,7 +519,7 @@ The following ports will have to be configured on Security Groups.
 
 After the theory now how we are setting these tools to be triggered by ansible. 
 
-# Terraform module
+# Terraform-module
 This can be used as a kafka module , see the example in the test folder.
 Note that you need to pass the secret key as a var here as you do not use the secrets file.
 You can use the env var by setting it in 
@@ -536,10 +546,19 @@ aws_public_key = var.aws_public_key
 To pass the value from the secrets.tfvars.json on. It is an abstraction that is pretty vague and not well documented. It kind of follows from the way terraform works. And it only makes sense when you get deeper into terraform. 
 
 
+# Wrapping up 
+## Authors
+
+* **Frederico Martins** - [fscm](https://github.com/fscm) - Initial project - it was forked and adapted for use 
+* **Philip Rodrigues** - [phiro](https://github.com/phiroict)  - Expansion, scalability, terragrunt/terraform/ansible modules and upgrades 
+
+See also the list of [contributors](https://github.com/fscm/packer-aws-kafka/contributors)
+who participated in this project.
 
 
-# This project
-## License
+## This project
+
+### License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE)
 file for details
@@ -558,4 +577,4 @@ to contribute to this project.
 ## Versioning
 
 This project uses [SemVer](http://semver.org/) for versioning. For the versions
-available, see the [tags on this repository](https://github.com/fscm/packer-aws-kafka/tags).
+available, see the [tags on this repository](https://github.com/phiroict/kafka-packer-terraform-aws/tags).
