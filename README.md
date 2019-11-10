@@ -294,7 +294,7 @@ inputs / vars
 
 | var name | default | type | meaning |
 | --- | --- | --- | --- |
-| base_kafka_image_ami | "ami-0e33f298f56c8ed6c" | String | Base kafka AMI (build by packer) |
+| base_kafka_image_ami | "" | String | Base kafka AMI (build by packer) |
 | base_zookeeper_image_ami | "" | String | Base zookeeper AMI (build by packer) |
 |   region | "ap-southeast-2"| String | AWS region you want to deploy to |
  |  build_bastion | true| boolean | Build a bastion to connect to, needed for ansible |
