@@ -81,7 +81,6 @@ variable "build_bastion" {
 
 variable "aws_public_key" {
   type = string
-  default = ""
 }
 
 variable "azs" {

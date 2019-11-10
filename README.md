@@ -521,6 +521,21 @@ Or pass it as a configuration file.
 ```
 terraform plan -var-file ../terragrunt/secrets.tfvars.json -out kafka.plan
 ```
+Note that you need to redeclare the aws_public_key and then pass it on through in the params (You need not do that in terragrunt)
+In the module declaration  add: 
+```
+variable "aws_public_key" {
+
+}
+```
+
+And in the module for example in the test module file `test/kafka-cluster-module-test.tf` add:
+```
+aws_public_key = var.aws_public_key
+```
+To pass the value from the secrets.tfvars.json on. It is an abstraction that is pretty vague and not well documented. It kind of follows from the way terraform works. And it only makes sense when you get deeper into terraform. 
+
+
 
 
 # This project

@@ -6,15 +6,16 @@ provider "aws" {
 }
 
 variable "aws_public_key" {
-  type = string
+
 }
 
 module "kafka-cluster-test" {
-  source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.3"
+  # source = "git@github.com:phiroict/kafka-packer-terraform-aws.git//terraform?ref=v0.8.4"
+  source = "../terraform"
   providers = {
     aws = "aws.aws"
   }
-
+  aws_public_key = var.aws_public_key
   base_kafka_image_ami = "ami-056df8555b0d63e37"
   base_zookeeper_image_ami = "ami-0bbab8485567e65bf"
   region = "ap-southeast-2"
